@@ -82,6 +82,9 @@ if __name__ == '__main__':
         return [random.randrange(low, high) for i in range(length)]
 
     NUM_MOVES = 10
+    NUM_LABELS = 12
+    NUM_SENSORS = 2
+    NUM_AXES = 3
     DATA_FILE = 'collection_test.pb'
 
     # Construct a list representing number of data points corresponding to each move.
@@ -92,12 +95,12 @@ if __name__ == '__main__':
     print(move_starts)
 
     # Generate random sensor data
-    sensors_data = [[sensor_data.SensorDatum(random_array(3, 0, 10), random_array(3, 0, 10))
-                     for i in range(2)
+    sensors_data = [[sensor_data.SensorDatum(random_array(NUM_AXES, 0, 10), random_array(NUM_AXES, 0, 10))
+                     for i in range(NUM_SENSORS)
                      ]
                     for j in range(num_data_points)
                     ]
-    labels = random_array(len(move_starts), 1, 12)
+    labels = random_array(len(move_starts), 1, NUM_LABELS)
 
     # Process each data point
     data_collection = DataCollection(DATA_FILE)
