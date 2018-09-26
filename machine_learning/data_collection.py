@@ -1,5 +1,6 @@
 import pickle
 import segment
+import numpy as np
 
 
 class DataCollection:
@@ -47,6 +48,7 @@ class DataCollection:
         assert len(labels) == len(self.move_start_indices)
 
         num_data_points = len(self.sensors_data)
+        sensors_data = np.array(self.sensors_data)
 
         # To make segmenting a little easier
         self.move_start_indices.append(num_data_points)
@@ -62,7 +64,7 @@ class DataCollection:
                 # label with next move
                 curr_move_idx += 1
 
-            segments.append(segment.Segment(self.sensors_data[segment_start: segment_start + segment.SEGMENT_SIZE], labels[curr_move_idx]))
+            segments.append(segment.Segment(sensors_data[segment_start: segment_start + segment.SEGMENT_SIZE], labels[curr_move_idx]))
 
             segment_start += segment.SEGMENT_OFFSET
 
