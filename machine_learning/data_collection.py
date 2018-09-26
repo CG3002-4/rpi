@@ -1,5 +1,5 @@
 import pickle
-import segment
+from machine_learning import segment
 
 
 class DataCollection:
