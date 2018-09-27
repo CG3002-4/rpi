@@ -1,4 +1,4 @@
-import _thread
+# import _thread
 from comms import read_data
 from machine_learning import data_collection, sensor_data
 # from pynput.keyboard import Listener, Key, KeyCode

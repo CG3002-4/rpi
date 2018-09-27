@@ -1,6 +1,7 @@
 import numpy as np
 import serial
 import struct
+import socket
 
 DATA_SIZE = 32
 
@@ -8,6 +9,11 @@ DATA_SIZE = 32
 def read_data():
     ser = serial.Serial("/dev/ttyAMA0", 115200)
     ser.flushInput()
+
+    HOST = '172.17.146.202'
+    PORT = 8888
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((HOST, PORT))
 
     while True:
         packet = ser.read(DATA_SIZE + 1)
@@ -21,6 +27,7 @@ def read_data():
             print(packet)
             print()
 
+        s.sendall(packet)
         # TODO: Should this be little endian??
         contents = np.array([struct.unpack('>h', packet[i: i + 2])[0] for i in range(0, 32, 2)])
         yield contents / 100
