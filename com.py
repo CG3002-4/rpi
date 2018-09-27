@@ -1,6 +1,7 @@
 import _thread
 import socket
 import struct
+import time
 import numpy as np
 from machine_learning import data_collection, sensor_data
 from pynput.keyboard import Listener, Key, KeyCode
@@ -30,8 +31,14 @@ def recv_data():
     conn, addr = s.accept()
     print ('Connected by', addr)
 
+    prev_time = time.time()
+
     while (True):
-        packet = conn.recv(1024)
+        packet = conn.recv(DATA_SIZE + 1)
+        curr_time = time.time()
+        inter_packet_time = curr_time - prev_time
+
+        prev_time = curr_time
 
         checksum = 0
         for byte in packet[:DATA_SIZE]:
@@ -43,7 +50,7 @@ def recv_data():
             print()
 
         contents = np.array([struct.unpack('>h', packet[i: i + 2])[0] for i in range(0, 32, 2)])
-        yield contents / 100
+        yield contents / 100, inter_packet_time
 
 
 if __name__ == '__main__':
@@ -54,13 +61,13 @@ if __name__ == '__main__':
             data_collection.save()
             _thread.interrupt_main()
 
-        register_kbd_listeners(data_collection.next_move, on_quit)
+        register_kbd_listeners(on_move=data_collection.next_move, on_quit=on_quit)
 
-        for packet in recv_data():
+        for packet, inter_packet_time in recv_data():
             sensor1_datum = sensor_data.SensorDatum(packet[0:3], packet[3:6])
             sensor2_datum = sensor_data.SensorDatum(packet[6:9], packet[9:12])
 
-            data_collection.process([sensor1_datum, sensor2_datum])
+            data_collection.process([sensor1_datum, sensor2_datum], inter_packet_time)
 
     except KeyboardInterrupt:
         print('Done!')
