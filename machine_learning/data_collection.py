@@ -1,6 +1,6 @@
 import pickle
-import segment
 import numpy as np
+from machine_learning import segment
 
 
 class DataCollection:
@@ -17,13 +17,15 @@ class DataCollection:
     """
     def __init__(self, filename):
         self.sensors_data = []
+        self.inter_packet_times = []
         self.move_start_indices = []
         self.filename = filename
 
-    def process(self, sensors_datum):
+    def process(self, sensors_datum, inter_packet_time):
         """Takes in a list of sensor_data.SensorDatum representing one data
         point for each sensor."""
         self.sensors_data.append(sensors_datum)
+        self.inter_packet_times.append(inter_packet_time)
 
     def next_move(self):
         self.move_start_indices.append(len(self.sensors_data))
