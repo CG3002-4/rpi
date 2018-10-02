@@ -11,14 +11,11 @@ PORT = 8888
 DATA_SIZE = 32
 
 
-def register_kbd_listeners(on_move, on_quit):
+def register_kbd_listeners(on_move):
     def on_press(key):
         if key == Key.space:
             print('Move')
             on_move()
-        elif key == KeyCode.from_char('q'):
-            print('Quit')
-            on_quit()
 
     Listener(on_press=on_press).start()
 
@@ -57,11 +54,7 @@ if __name__ == '__main__':
     data_collection = data_collection.DataCollection('test.pb')
 
     try:
-        def on_quit():
-            data_collection.save()
-            _thread.interrupt_main()
-
-        register_kbd_listeners(on_move=data_collection.next_move, on_quit=on_quit)
+        register_kbd_listeners(on_move=data_collection.next_move)
 
         for packet, inter_packet_time in recv_data(sys.argv[1]):
             sensor1_datum = sensor_data.SensorDatum(packet[0:3], packet[3:6])
@@ -70,4 +63,5 @@ if __name__ == '__main__':
             data_collection.process([sensor1_datum, sensor2_datum], inter_packet_time)
 
     except KeyboardInterrupt:
+        data_collection.save()
         print('Done!')
