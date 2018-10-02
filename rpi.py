@@ -22,7 +22,6 @@ def read_and_send_data(host):
 
         if checksum != packet[DATA_SIZE]:
             print('Checksums didn\'t match')
-            print(packet)
             print()
 
         s.sendall(packet)
