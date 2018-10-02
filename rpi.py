@@ -1,17 +1,17 @@
 import socket
 import serial
+import sys
 
-HOST = '172.17.146.202'
 PORT = 8888
 DATA_SIZE = 32
 
 
-def read_and_send_data():
+def read_and_send_data(host):
     ser = serial.Serial("/dev/ttyAMA0", 115200)
     ser.flushInput()
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((HOST, PORT))
+    s.connect((host, PORT))
 
     while True:
         packet = ser.read(DATA_SIZE + 1)
@@ -29,4 +29,4 @@ def read_and_send_data():
 
 
 if __name__ == '__main__':
-    read_and_send_data()
+    read_and_send_data(sys.argv[1])

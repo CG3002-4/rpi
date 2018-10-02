@@ -2,11 +2,11 @@ import _thread
 import socket
 import struct
 import time
+import sys
 import numpy as np
 from machine_learning import data_collection, sensor_data
 from pynput.keyboard import Listener, Key, KeyCode
 
-HOST = '172.17.146.202'
 PORT = 8888
 DATA_SIZE = 32
 
@@ -23,9 +23,9 @@ def register_kbd_listeners(on_move, on_quit):
     Listener(on_press=on_press).start()
 
 
-def recv_data():
+def recv_data(host):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind((HOST, PORT))
+    s.bind((host, PORT))
     s.listen(1)
 
     conn, addr = s.accept()
@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
         register_kbd_listeners(on_move=data_collection.next_move, on_quit=on_quit)
 
-        for packet, inter_packet_time in recv_data():
+        for packet, inter_packet_time in recv_data(sys.argv[1]):
             sensor1_datum = sensor_data.SensorDatum(packet[0:3], packet[3:6])
             sensor2_datum = sensor_data.SensorDatum(packet[6:9], packet[9:12])
 
