@@ -45,15 +45,15 @@ class DataCollection:
         if not os.path.isdir(self.experiment_dir):
             os.makedirs(self.experiment_dir)
 
-        def dump_csv(data, filename):
-            np.savetxt(os.path.join(self.experiment_dir, filename), data, delimiter=',', fmt='% f')
+        def dump_csv(data, filename, fmt):
+            np.savetxt(os.path.join(self.experiment_dir, filename), data, delimiter=',', fmt=fmt)
 
         for i, sensor_data in enumerate(self.sensors_data):
-            dump_csv(sensor_data.acc, 'sensor' + str(i) + '_acc.txt')
-            dump_csv(sensor_data.gyro, 'sensor' + str(i) + '_gyro.txt')
+            dump_csv(sensor_data.acc, 'sensor' + str(i) + '_acc.txt', '% f')
+            dump_csv(sensor_data.gyro, 'sensor' + str(i) + '_gyro.txt', '% f')
 
-        dump_csv(self.inter_packet_times, 'inter_packet_times.txt')
-        dump_csv(self.move_start_indices, 'move_start_indices.txt')
+        dump_csv(self.inter_packet_times, 'inter_packet_times.txt', '%f')
+        dump_csv(self.move_start_indices, 'move_start_indices.txt', '%d')
 
     def load(self):
         def load_csv(filename):
@@ -65,7 +65,7 @@ class DataCollection:
             self.sensors_data[i].set_data(acc, gyro)
 
         self.inter_packet_times = list(load_csv('inter_packet_times.txt'))
-        self.move_start_indices = list(map(int, load_csv('move_start_indices.txt')))
+        self.move_start_indices = list(load_csv('move_start_indices.txt'))
         self.num_data_points = len(self.sensors_data[0].acc)
 
     def segment(self, labels):
