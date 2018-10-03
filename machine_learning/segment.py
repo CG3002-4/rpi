@@ -8,7 +8,8 @@ class Segment:
     per sensor.
     """
     def __init__(self, sensors_data, label):
-        assert len(sensors_data) == SEGMENT_SIZE
+        for sensor_data in sensors_data:
+            len(sensor_data.acc) == SEGMENT_SIZE
 
         self.sensors_data = sensors_data
         self.label = label
