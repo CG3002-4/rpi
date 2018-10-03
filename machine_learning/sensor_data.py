@@ -19,10 +19,7 @@ class SensorData:
     """Represents multiple data points for a single sensor."""
 
     def __init__(self):
-        """Takes list of SensorDatum as input.
-
-        Stores list of all acc and gyro values as lists of triplets
-        """
+        """Stores list of all acc and gyro values as lists of triplets"""
         self.acc = np.empty((0, NUM_AXES))
         self.gyro = np.empty((0, NUM_AXES))
 
