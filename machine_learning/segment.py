@@ -1,5 +1,5 @@
 import numpy as np
-import sensor_data
+from machine_learning import sensor_data as sd
 
 SEGMENT_SIZE = 50
 SEGMENT_OVERLAP = 0
@@ -15,9 +15,10 @@ class Segment:
     """
     def __init__(self, sensors_data, label):
         """sensors_data must be a numpy array"""
-        assert len(sensors_data) == SEGMENT_SIZE
+        for sensor_data in sensors_data:
+            len(sensor_data.acc) == SEGMENT_SIZE
 
-        self.sensors_data = np.array([sensor_data.SensorData(sd) for sd in sensors_data.transpose()])
+        self.sensors_data = np.array([sd.SensorData(sensor_data) for sensor_data in sensors_data.transpose()])
         self.label = label
 
     def __repr__(self):
