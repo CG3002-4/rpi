@@ -24,8 +24,6 @@ class SensorData:
         self.gyro = np.empty((0, NUM_AXES))
 
     def add_datum(self, sensor_datum):
-        # print(sensor_datum.acc.shape)
-        # print(self.acc.shape)
         self.acc = np.vstack([self.acc, sensor_datum.acc])
         self.gyro = np.vstack([self.gyro, sensor_datum.gyro])
 
@@ -37,7 +35,7 @@ class SensorData:
 
     def set_data(self, acc, gyro):
         assert acc.shape == gyro.shape
-        assert acc.shape[1] == 3
+        assert acc.shape[1] == NUM_AXES
 
         self.acc = acc
         self.gyro = gyro
