@@ -8,9 +8,17 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 NUM_ESTIMATORS = 39
 
 
-def cross_validate(X, y):
+def train_internal(X, y):
     max_features = (np.sqrt(len(X.columns)) + 1) / len(X.columns)
 
+    clf = ExtraTreesClassifier(random_state=0, max_features=max_features,
+                               n_estimators=NUM_ESTIMATORS, max_depth=None, min_samples_split=2, bootstrap=False)
+    clf.fit(X, y)
+
+    return clf
+
+
+def cross_validate(X, y):
     skf = StratifiedKFold(n_splits=10, shuffle=True, random_state=0)
     skf.get_n_splits(X)
     confusion_matrices = []
@@ -21,10 +29,7 @@ def cross_validate(X, y):
         train_X, test_X = X.iloc[train_index], X.iloc[test_index]
         train_y, test_y = y[train_index], y[test_index]
 
-        clf = ExtraTreesClassifier(random_state=0, max_features=max_features,
-                                   n_estimators=NUM_ESTIMATORS, max_depth=None, min_samples_split=2, bootstrap=False)
-        clf.fit(train_X, train_y)
-
+        clf = train_internal(train_X, train_y)
         predictions = clf.predict(test_X)
         accuracy.append(accuracy_score(test_y, predictions))
         confusion_matrices.append(confusion_matrix(test_y, predictions))
@@ -75,11 +80,4 @@ def cross_validate(X, y):
 def train(X, y):
     X = X.sample(frac=1)
 
-    max_features = (np.sqrt(len(X.columns)) + 1) / len(X.columns)
-
-    clf = ExtraTreesClassifier(random_state=0, max_features=max_features,
-                               n_estimators=NUM_ESTIMATORS, max_depth=None,
-                               min_samples_split=2, bootstrap=False)
-    clf.fit(X, y)
-
-    return clf
+    return train_internal(X, y)
