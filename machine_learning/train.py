@@ -12,7 +12,8 @@ def train_internal(X, y):
     max_features = (np.sqrt(len(X.columns)) + 1) / len(X.columns)
 
     clf = ExtraTreesClassifier(random_state=0, max_features=max_features,
-                               n_estimators=NUM_ESTIMATORS, max_depth=None, min_samples_split=2, bootstrap=False)
+                               n_estimators=NUM_ESTIMATORS, max_depth=None,
+                               min_samples_split=2, bootstrap=False)
     clf.fit(X, y)
 
     return clf
