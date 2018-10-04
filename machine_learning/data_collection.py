@@ -1,5 +1,11 @@
-import pickle
+import numpy as np
+import os
 from machine_learning import segment
+from machine_learning import sensor_data as sd
+
+
+DATA_FILE_PREFIX = 'machine_learning/data'
+NUM_SENSORS = 2
 
 
 class DataCollection:
@@ -14,28 +20,53 @@ class DataCollection:
         6. Load object from file
         7. Call segment() using labels
     """
-    def __init__(self, filename):
-        self.sensors_data = []
+    def __init__(self, experiment_name):
+        self.sensors_data = np.array([sd.SensorData() for i in range(NUM_SENSORS)])
         self.inter_packet_times = []
         self.move_start_indices = []
-        self.filename = filename
+        self.experiment_dir = os.path.join(DATA_FILE_PREFIX, experiment_name)
+        self.num_data_points = 0
 
     def process(self, sensors_datum, inter_packet_time):
         """Takes in a list of sensor_data.SensorDatum representing one data
         point for each sensor."""
-        self.sensors_data.append(sensors_datum)
+        assert len(sensors_datum) == NUM_SENSORS
+
+        for i in range(NUM_SENSORS):
+            self.sensors_data[i].add_datum(sensors_datum[i])
+
         self.inter_packet_times.append(inter_packet_time)
+        self.num_data_points += 1
 
     def next_move(self):
-        self.move_start_indices.append(len(self.sensors_data))
+        self.move_start_indices.append(self.num_data_points)
 
     def save(self):
-        with open(self.filename, 'wb') as f:
-            pickle.dump(self.__dict__, f)
+        if not os.path.isdir(self.experiment_dir):
+            os.makedirs(self.experiment_dir)
+
+        def dump_csv(data, filename, fmt):
+            np.savetxt(os.path.join(self.experiment_dir, filename), data, delimiter=',', fmt=fmt)
+
+        for i, sensor_data in enumerate(self.sensors_data):
+            dump_csv(sensor_data.acc, 'sensor' + str(i) + '_acc.txt', '% f')
+            dump_csv(sensor_data.gyro, 'sensor' + str(i) + '_gyro.txt', '% f')
+
+        dump_csv(self.inter_packet_times, 'inter_packet_times.txt', '%f')
+        dump_csv(self.move_start_indices, 'move_start_indices.txt', '%d')
 
     def load(self):
-        with open(self.filename, 'rb') as f:
-            self.__dict__.update(pickle.load(f))
+        def load_csv(filename):
+            return np.loadtxt(os.path.join(self.experiment_dir, filename), delimiter=',')
+
+        for i in range(NUM_SENSORS):
+            acc = load_csv('sensor' + str(i) + '_acc.txt')
+            gyro = load_csv('sensor' + str(i) + '_gyro.txt')
+            self.sensors_data[i].set_data(acc, gyro)
+
+        self.inter_packet_times = list(load_csv('inter_packet_times.txt'))
+        self.move_start_indices = list(load_csv('move_start_indices.txt'))
+        self.num_data_points = len(self.sensors_data[0].acc)
 
     def segment(self, labels):
         """Given labels for each of the moves, segment the data.
@@ -48,15 +79,13 @@ class DataCollection:
         """
         assert len(labels) == len(self.move_start_indices)
 
-        num_data_points = len(self.sensors_data)
-
         # To make segmenting a little easier
-        self.move_start_indices.append(num_data_points)
+        self.move_start_indices.append(self.num_data_points)
 
         segment_start = 0
         curr_move_idx = 0
         segments = []
-        while segment_start + segment.SEGMENT_SIZE <= num_data_points:
+        while segment_start + segment.SEGMENT_SIZE <= self.num_data_points:
             # Compute what part of this segment is labelled by the current
             # index.
             portion_in_curr_move = self.move_start_indices[curr_move_idx + 1] - segment_start
@@ -64,7 +93,8 @@ class DataCollection:
                 # label with next move
                 curr_move_idx += 1
 
-            segments.append(segment.Segment(self.sensors_data[segment_start: segment_start + segment.SEGMENT_SIZE], labels[curr_move_idx]))
+            segment_data = np.array([sensor_data.get_slice(segment_start, segment_start + segment.SEGMENT_SIZE) for sensor_data in self.sensors_data])
+            segments.append(segment.Segment(segment_data, labels[curr_move_idx]))
 
             segment_start += segment.SEGMENT_OFFSET
 
@@ -76,18 +106,14 @@ class DataCollection:
 
 if __name__ == '__main__':
     # Test the DataCollection class
-    import numpy as np
     import random
-    import sensor_data
 
     def random_array(length, low, high):
         return [random.randrange(low, high) for i in range(length)]
 
     NUM_MOVES = 10
     NUM_LABELS = 12
-    NUM_SENSORS = 2
-    NUM_AXES = 3
-    DATA_FILE = 'collection_test.pb'
+    TEST_EXP_NAME = 'test_exp'
 
     # Construct a list representing number of data points corresponding to each move.
     move_sizes = random_array(NUM_MOVES, segment.SEGMENT_SIZE * 4, segment.SEGMENT_SIZE * 8)
@@ -97,7 +123,7 @@ if __name__ == '__main__':
     print(move_starts)
 
     # Generate random sensor data
-    sensors_data = [[sensor_data.SensorDatum(random_array(NUM_AXES, 0, 10), random_array(NUM_AXES, 0, 10))
+    sensors_data = [[sd.SensorDatum(random_array(sd.NUM_AXES, 0, 10), random_array(sd.NUM_AXES, 0, 10))
                      for i in range(NUM_SENSORS)
                      ]
                     for j in range(num_data_points)
@@ -105,17 +131,17 @@ if __name__ == '__main__':
     labels = random_array(len(move_starts), 1, NUM_LABELS)
 
     # Process each data point
-    data_collection = DataCollection(DATA_FILE)
+    data_collection = DataCollection(TEST_EXP_NAME)
     for i in range(num_data_points):
         if i in move_starts:
             data_collection.next_move()
-        data_collection.process(sensors_data[i])
+        data_collection.process(sensors_data[i], random.random())
 
     assert data_collection.move_start_indices == move_starts
 
     # Save and reload
     data_collection.save()
-    data_collection = DataCollection(DATA_FILE)
+    data_collection = DataCollection(TEST_EXP_NAME)
     data_collection.load()
 
     # Segment
