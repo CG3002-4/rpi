@@ -3,7 +3,8 @@ import struct
 import time
 import sys
 import numpy as np
-from machine_learning import data_collection, sensor_data
+import data_collection
+import sensor_data
 from pynput.keyboard import Listener, Key
 
 # PORT = 8888
@@ -21,7 +22,7 @@ def register_kbd_listeners(on_move):
 
 def recv_data(host_ip, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind((host_ip, port))
+    s.bind((host_ip, int(port)))
     s.listen(1)
 
     conn, addr = s.accept()
@@ -51,8 +52,7 @@ def recv_data(host_ip, port):
 
 
 if __name__ == '__main__':
-    data_collection = data_collection.DataCollection(
-        experiment_name=sys.argv[3])
+    data_collection = data_collection.DataCollection(sys.argv[3])
 
     try:
         register_kbd_listeners(on_move=data_collection.next_move)
