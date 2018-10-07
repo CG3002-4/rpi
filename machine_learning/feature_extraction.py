@@ -95,18 +95,15 @@ def extract_features(segments, feature_extractors):
 
 
 if __name__ == '__main__':
-    from machine_learning import data_collection
+    import data_collection
     import random
 
     np.set_printoptions(suppress=True)
 
-    TEST_EXP_NAME = 'test_exp'
+    EXP_LOCATION = './data/test_exp/'
 
-    collector = data_collection.DataCollection(TEST_EXP_NAME)
+    collector = data_collection.DataCollection(EXP_LOCATION)
     collector.load()
 
-    labels = [random.randrange(1, 12)
-              for i in range(len(collector.move_start_indices))]
-
-    segments = collector.segment(labels)
+    segments = collector.segment()
     print(extract_features(segments[0:3], [mean, stdev, correlate]))

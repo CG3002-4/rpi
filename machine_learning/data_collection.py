@@ -1,10 +1,9 @@
 import numpy as np
 import os
-from machine_learning import segment
-from machine_learning import sensor_data as sd
+import segment
+import sensor_data as sd
 
 
-DATA_FILE_PREFIX = 'machine_learning/data'
 NUM_SENSORS = 2
 
 
@@ -21,12 +20,12 @@ class DataCollection:
         7. Call segment() using labels
     """
 
-    def __init__(self, experiment_name):
+    def __init__(self, experiment_dir):
         self.sensors_data = np.array([sd.SensorData()
                                       for i in range(NUM_SENSORS)])
         self.inter_packet_times = []
         self.move_start_indices = []
-        self.experiment_dir = os.path.join(DATA_FILE_PREFIX, experiment_name)
+        self.experiment_dir = experiment_dir
         self.num_data_points = 0
         self.labels = None
 
@@ -67,20 +66,23 @@ class DataCollection:
 
     def load(self):
         def load_csv(filename, dtype):
-            return np.loadtxt(os.path.join(self.experiment_dir, filename), delimiter=',', dtype=dtype)
+            file_location = self.experiment_dir + filename
+            return np.loadtxt(file_location, delimiter=',', dtype=dtype)
 
         for i in range(NUM_SENSORS):
             acc = load_csv('sensor' + str(i) + '_acc.txt', dtype=float)
             gyro = load_csv('sensor' + str(i) + '_gyro.txt', dtype=float)
             self.sensors_data[i].set_data(acc, gyro)
 
-        self.inter_packet_times = list(load_csv('inter_packet_times.txt', dtype=float))
-        self.move_start_indices = list(load_csv('move_start_indices.txt', dtype=int))
+        self.inter_packet_times = list(
+            load_csv('inter_packet_times.txt', dtype=float))
+        self.move_start_indices = list(
+            load_csv('move_start_indices.txt', dtype=int))
         self.num_data_points = len(self.sensors_data[0].acc)
 
-        if os.path.exists(os.path.join(self.experiment_dir, 'labels.txt')):
+        try:
             self.labels = list(load_csv('labels.txt', dtype=int))
-        else:
+        except:
             self.labels = None
 
     def segment(self):
@@ -110,12 +112,10 @@ class DataCollection:
                 # label with next move
                 curr_move_idx += 1
 
-            segment_data = np.array([sensor_data.get_slice(segment_start, segment_start + segment.SEGMENT_SIZE) for sensor_data in self.sensors_data])
-            segments.append(segment.Segment(segment_data, self.labels[curr_move_idx]))
             segment_data = np.array([sensor_data.get_slice(
                 segment_start, segment_start + segment.SEGMENT_SIZE) for sensor_data in self.sensors_data])
             segments.append(segment.Segment(
-                segment_data, labels[curr_move_idx]))
+                segment_data, self.labels[curr_move_idx]))
 
             segment_start += segment.SEGMENT_OFFSET
 
