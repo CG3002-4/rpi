@@ -134,7 +134,7 @@ if __name__ == '__main__':
 
     NUM_MOVES = 10
     NUM_LABELS = 12
-    TEST_EXP_NAME = 'test_exp'
+    EXP_LOCATION = './data/test_exp/'
 
     # Construct a list representing number of data points corresponding to each move.
     move_sizes = random_array(
@@ -153,7 +153,7 @@ if __name__ == '__main__':
     labels = random_array(len(move_starts), 1, NUM_LABELS)
 
     # Process each data point
-    data_collection = DataCollection(TEST_EXP_NAME)
+    data_collection = DataCollection(EXP_LOCATION)
     for i in range(num_data_points):
         if i in move_starts:
             data_collection.next_move()
@@ -165,7 +165,7 @@ if __name__ == '__main__':
 
     # Save and reload
     data_collection.save()
-    data_collection = DataCollection(TEST_EXP_NAME)
+    data_collection = DataCollection(EXP_LOCATION)
     data_collection.load()
 
     # Segment
