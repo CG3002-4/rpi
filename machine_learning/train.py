@@ -3,12 +3,14 @@ import numpy as np
 from sklearn.model_selection import StratifiedKFold
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.metrics import confusion_matrix, accuracy_score
+from sklearn.utils import shuffle
 
 
 NUM_ESTIMATORS = 39
 
 
 def train_internal(X, y):
+    """Expects input data to be shuffled."""
     max_features = (np.sqrt(len(X.columns)) + 1) / len(X.columns)
 
     clf = ExtraTreesClassifier(random_state=0, max_features=max_features,
@@ -20,6 +22,7 @@ def train_internal(X, y):
 
 
 def cross_validate(X, y):
+    """Uses 10-fold validation to train and test a model."""
     skf = StratifiedKFold(n_splits=10, shuffle=True, random_state=0)
     skf.get_n_splits(X)
     confusion_matrices = []
@@ -79,6 +82,7 @@ def cross_validate(X, y):
 
 
 def train(X, y):
-    X = X.sample(frac=1)
+    # Shuffle the X and y values in unison
+    X, y = shuffle(X, y)
 
     return train_internal(X, y)

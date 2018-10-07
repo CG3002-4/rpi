@@ -1,3 +1,11 @@
+"""Implements the training and validation pipelines.
+
+Usage:
+    training:
+        python3 pipeline train <model_filename> [<experiment_name>]
+    cross validation:
+        python3 pipeline cross [<experiment_name>]
+"""
 import sys
 import numpy as np
 import pickle
@@ -10,6 +18,7 @@ FEATURE_EXTRACTORS = [feature_extraction.mean, feature_extraction.stdev, feature
 
 
 def pipeline(experiment_names):
+    """Implements a segmentation-preprocessing-feature_extraction pipeline."""
     assert len(experiment_names) > 0
 
     segments = []
@@ -26,6 +35,7 @@ def pipeline(experiment_names):
 
 
 def train_pipeline(experiment_names, model_filename):
+    """Trains a model on all the data provided and dumps it to a file."""
     features, labels = pipeline(experiment_names)
 
     model = train.train(X=features, y=labels)
@@ -35,6 +45,7 @@ def train_pipeline(experiment_names, model_filename):
 
 
 def cross_validate_pipeline(experiment_names):
+    """Trains and validates a model"""
     features, labels = pipeline(experiment_names)
 
     train.cross_validate(X=features, y=labels)
@@ -44,8 +55,8 @@ if __name__ == '__main__':
     pipeline_type = sys.argv[1]
 
     if pipeline_type == 'train':
-        train_pipeline(sys.argv[3:], sys.argv[2])
+        train_pipeline(experiment_names=sys.argv[3:], model_filename=sys.argv[2])
     elif pipeline_type == 'cross':
-        cross_validate_pipeline(sys.argv[2:])
+        cross_validate_pipeline(experiment_names=sys.argv[2:])
     else:
         print('Unrecognized pipeline: ' + pipeline_type)
