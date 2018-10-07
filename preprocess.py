@@ -56,17 +56,17 @@ def preprocess_segment(segment, noise_filters):
             processed_segment.sensors_data[i].acc, processed_segment.sensors_data[i].acc, processed_segment.sensors_data[i].gyro)
 
         for noise_filter in noise_filters:
-            processed_segment.sensors_data[i].body = np.apply_along_axis(
-                noise_filter, 0, processed_segment.sensors_data[i].body)
-            processed_segment.sensors_data[i].grav = np.apply_along_axis(
-                noise_filter, 0, processed_segment.sensors_data[i].grav)
-            processed_segment.sensors_data[i].gyro = np.apply_along_axis(
-                noise_filter, 0, processed_segment.sensors_data[i].gyro)
+            processed_segment.sensors_data[i].body = filter_axis(
+                noise_filter, processed_segment.sensors_data[i].body)
+            processed_segment.sensors_data[i].grav = filter_axis(
+                noise_filter, processed_segment.sensors_data[i].grav)
+            processed_segment.sensors_data[i].gyro = filter_axis(
+                noise_filter, processed_segment.sensors_data[i].gyro)
 
-        processed_segment.sensors_data[i].body = np.apply_along_axis(
-            butter_body, 0, processed_segment.sensors_data[i].body)
-        processed_segment.sensors_data[i].grav = np.apply_along_axis(
-            butter_gravity, 0, processed_segment.sensors_data[i].grav)
+        processed_segment.sensors_data[i].body = filter_axis(
+            butter_body, processed_segment.sensors_data[i].body)
+        processed_segment.sensors_data[i].grav = filter_axis(
+            butter_gravity, processed_segment.sensors_data[i].grav)
 
     return processed_segment
 
@@ -92,9 +92,6 @@ if __name__ == '__main__':
     segments = collector.segment()
     processed_segments = (preprocess_segments(
         segments[0:3], [medfilt, butter_noise]))
-
-    np.array_equal(
-        processed_segments[0].sensors_data[1].body, segments[0].sensors_data[1].acc)
 
     import matplotlib.pyplot as plt
     import plot
