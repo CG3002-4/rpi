@@ -105,7 +105,8 @@ if __name__ == '__main__':
     collector = data_collection.DataCollection(TEST_EXP_NAME)
     collector.load()
 
-    labels = [random.randrange(1, 12) for i in range(len(collector.move_start_indices))]
+    labels = [random.randrange(1, 12)
+              for i in range(len(collector.move_start_indices))]
 
     segments = collector.segment(labels)
     print(extract_features(segments[0:3], [mean, stdev, correlate]))

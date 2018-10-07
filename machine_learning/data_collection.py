@@ -20,8 +20,10 @@ class DataCollection:
         6. Load object from file
         7. Call segment() using labels
     """
+
     def __init__(self, experiment_name):
-        self.sensors_data = np.array([sd.SensorData() for i in range(NUM_SENSORS)])
+        self.sensors_data = np.array([sd.SensorData()
+                                      for i in range(NUM_SENSORS)])
         self.inter_packet_times = []
         self.move_start_indices = []
         self.experiment_dir = os.path.join(DATA_FILE_PREFIX, experiment_name)
@@ -29,8 +31,11 @@ class DataCollection:
         self.labels = None
 
     def process(self, sensors_datum, inter_packet_time):
-        """Takes in a list of sensor_data.SensorDatum representing one data
-        point for each sensor."""
+        """
+        Takes in a list of sensor_data.SensorDatum representing one data
+        point for each sensor, and inter packet time to compare latency.
+
+        """
         assert len(sensors_datum) == NUM_SENSORS
 
         for i in range(NUM_SENSORS):
@@ -47,7 +52,8 @@ class DataCollection:
             os.makedirs(self.experiment_dir)
 
         def dump_csv(data, filename, fmt):
-            np.savetxt(os.path.join(self.experiment_dir, filename), data, delimiter=',', fmt=fmt)
+            np.savetxt(os.path.join(self.experiment_dir, filename),
+                       data, delimiter=',', fmt=fmt)
 
         for i, sensor_data in enumerate(self.sensors_data):
             dump_csv(sensor_data.acc, 'sensor' + str(i) + '_acc.txt', '% f')
@@ -98,13 +104,18 @@ class DataCollection:
         while segment_start + segment.SEGMENT_SIZE <= self.num_data_points:
             # Compute what part of this segment is labelled by the current
             # index.
-            portion_in_curr_move = self.move_start_indices[curr_move_idx + 1] - segment_start
+            portion_in_curr_move = self.move_start_indices[curr_move_idx +
+                                                           1] - segment_start
             if portion_in_curr_move < segment.SEGMENT_SIZE // 2:
                 # label with next move
                 curr_move_idx += 1
 
             segment_data = np.array([sensor_data.get_slice(segment_start, segment_start + segment.SEGMENT_SIZE) for sensor_data in self.sensors_data])
             segments.append(segment.Segment(segment_data, self.labels[curr_move_idx]))
+            segment_data = np.array([sensor_data.get_slice(
+                segment_start, segment_start + segment.SEGMENT_SIZE) for sensor_data in self.sensors_data])
+            segments.append(segment.Segment(
+                segment_data, labels[curr_move_idx]))
 
             segment_start += segment.SEGMENT_OFFSET
 
@@ -126,7 +137,8 @@ if __name__ == '__main__':
     TEST_EXP_NAME = 'test_exp'
 
     # Construct a list representing number of data points corresponding to each move.
-    move_sizes = random_array(NUM_MOVES, segment.SEGMENT_SIZE * 4, segment.SEGMENT_SIZE * 8)
+    move_sizes = random_array(
+        NUM_MOVES, segment.SEGMENT_SIZE * 4, segment.SEGMENT_SIZE * 8)
     move_sizes_sums = list(np.cumsum(move_sizes))
     move_starts = [0] + move_sizes_sums[:-1]
     num_data_points = move_sizes_sums[-1]
