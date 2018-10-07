@@ -26,6 +26,7 @@ class DataCollection:
         self.move_start_indices = []
         self.experiment_dir = os.path.join(DATA_FILE_PREFIX, experiment_name)
         self.num_data_points = 0
+        self.labels = None
 
     def process(self, sensors_datum, inter_packet_time):
         """Takes in a list of sensor_data.SensorDatum representing one data
@@ -55,20 +56,28 @@ class DataCollection:
         dump_csv(self.inter_packet_times, 'inter_packet_times.txt', '%f')
         dump_csv(self.move_start_indices, 'move_start_indices.txt', '%d')
 
+        if self.labels is not None:
+            dump_csv(self.labels, 'labels.txt', '%d')
+
     def load(self):
-        def load_csv(filename):
-            return np.loadtxt(os.path.join(self.experiment_dir, filename), delimiter=',')
+        def load_csv(filename, dtype):
+            return np.loadtxt(os.path.join(self.experiment_dir, filename), delimiter=',', dtype=dtype)
 
         for i in range(NUM_SENSORS):
-            acc = load_csv('sensor' + str(i) + '_acc.txt')
-            gyro = load_csv('sensor' + str(i) + '_gyro.txt')
+            acc = load_csv('sensor' + str(i) + '_acc.txt', dtype=float)
+            gyro = load_csv('sensor' + str(i) + '_gyro.txt', dtype=float)
             self.sensors_data[i].set_data(acc, gyro)
 
-        self.inter_packet_times = list(load_csv('inter_packet_times.txt'))
-        self.move_start_indices = list(load_csv('move_start_indices.txt'))
+        self.inter_packet_times = list(load_csv('inter_packet_times.txt', dtype=float))
+        self.move_start_indices = list(load_csv('move_start_indices.txt', dtype=int))
         self.num_data_points = len(self.sensors_data[0].acc)
 
-    def segment(self, labels):
+        if os.path.exists(os.path.join(self.experiment_dir, 'labels.txt')):
+            self.labels = list(load_csv('labels.txt', dtype=int))
+        else:
+            self.labels = None
+
+    def segment(self):
         """Given labels for each of the moves, segment the data.
 
         Note that this function simply segments the data according to the
@@ -77,7 +86,8 @@ class DataCollection:
         It then labels each segment by checking which label accounts for
         the majority of the segment.
         """
-        assert len(labels) == len(self.move_start_indices)
+        assert self.labels is not None
+        assert len(self.labels) == len(self.move_start_indices)
 
         # To make segmenting a little easier
         self.move_start_indices.append(self.num_data_points)
@@ -94,7 +104,7 @@ class DataCollection:
                 curr_move_idx += 1
 
             segment_data = np.array([sensor_data.get_slice(segment_start, segment_start + segment.SEGMENT_SIZE) for sensor_data in self.sensors_data])
-            segments.append(segment.Segment(segment_data, labels[curr_move_idx]))
+            segments.append(segment.Segment(segment_data, self.labels[curr_move_idx]))
 
             segment_start += segment.SEGMENT_OFFSET
 
@@ -137,6 +147,8 @@ if __name__ == '__main__':
             data_collection.next_move()
         data_collection.process(sensors_data[i], random.random())
 
+    data_collection.labels = labels
+
     assert data_collection.move_start_indices == move_starts
 
     # Save and reload
@@ -145,6 +157,6 @@ if __name__ == '__main__':
     data_collection.load()
 
     # Segment
-    segments = data_collection.segment(labels)
+    segments = data_collection.segment()
     print(labels)
     print(segments)
