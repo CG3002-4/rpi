@@ -1,9 +1,7 @@
 import numpy as np
-import pandas as pd
 import processed_sensor_data as psd
 import segment as seg
-import copy
-from scipy import stats, signal, fftpack
+from scipy import signal
 from data_collection import NUM_SENSORS
 
 
