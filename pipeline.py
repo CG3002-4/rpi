@@ -32,7 +32,8 @@ def feature_extraction_pipeline(experiment_names):
         data_collection.load()
         segments.extend(data_collection.segment())
 
-    preprocessed_segments = preprocess.preprocess_segments(segments, NOISE_FILTERS)
+    preprocessed_segments = preprocess.preprocess_segments(
+        segments, NOISE_FILTERS)
     features = feature_extraction.extract_features(
         preprocessed_segments, FEATURE_EXTRACTORS)
     labels = np.array([segment.label for segment in segments])
