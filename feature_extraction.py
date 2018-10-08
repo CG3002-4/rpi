@@ -30,7 +30,7 @@ def extract_feature_over_all_axes(segment, feature_extractor_over_axis, feature_
     of features.
     """
     feature_names = [feature_name + '_' + sensor_type + '_' + axis_name
-                     for sensor_type in ['Acc', 'Gyro']
+                     for sensor_type in ['Body', 'Grav', 'Gyro']
                      for axis_name in ['x', 'y', 'z']
                      ]
 
@@ -64,7 +64,8 @@ def correlate(segment):
             return np.corrcoef(np.transpose(triaxial_data))[[0, 0, 1], [1, 2, 2]]
 
         return np.concatenate([
-            correlate_over_triaxial_data(sensor_data.acc),
+            correlate_over_triaxial_data(sensor_data.body),
+            correlate_over_triaxial_data(sensor_data.grav),
             correlate_over_triaxial_data(sensor_data.gyro)
         ])
 
@@ -72,7 +73,7 @@ def correlate(segment):
         segment,
         correlate_over_sensor,
         ['Corr' + '_' + sensor_type + '_' + axis_pair
-         for sensor_type in ['Acc', 'Gyro']
+         for sensor_type in ['Body', 'Grav', 'Gyro']
          for axis_pair in ['xy', 'xz', 'yz']
          ]
     )
@@ -97,6 +98,7 @@ def extract_features(segments, feature_extractors):
 if __name__ == '__main__':
     import os
     import data_collection
+    import preprocess
 
     np.set_printoptions(suppress=True)
 
@@ -106,4 +108,8 @@ if __name__ == '__main__':
     collector.load()
 
     segments = collector.segment()
-    print(extract_features(segments[0:3], [mean, stdev, correlate]))
+    preprocessed_segments = preprocess.preprocess_segments(
+        segments[0:3],
+        [preprocess.medfilt, preprocess.butter_noise]
+    )
+    print(extract_features(preprocessed_segments, [mean, stdev, correlate]))
