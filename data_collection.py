@@ -81,7 +81,7 @@ class DataCollection:
         self.num_data_points = len(self.sensors_data[0].acc)
 
         try:
-            self.labels = list(load_csv('labels.txt', dtype=int))
+            self.labels = np.array(load_csv('labels.txt', dtype=int))
         except:
             self.labels = None
 
