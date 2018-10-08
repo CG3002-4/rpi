@@ -98,7 +98,10 @@ if __name__ == '__main__':
 
     plt.figure(facecolor="white", figsize=(15, 10))
 
-    plt.subplot(121)
+    plt.subplot(131)
+    plot.plot_data(segments[0].sensors_data[0].acc, 'Acc')
+
+    plt.subplot(132)
     filtered_acc = filter_data(
         butter_noise,
         filter_data(
@@ -108,7 +111,7 @@ if __name__ == '__main__':
     )
     plot.plot_data(filtered_acc, 'Filtered_acc')
 
-    plt.subplot(122)
+    plt.subplot(133)
     body_plus_grav = (processed_segments[0].sensors_data[0].body +
                       processed_segments[0].sensors_data[0].grav)
     plot.plot_data(body_plus_grav, 'Body_plus_grav')
