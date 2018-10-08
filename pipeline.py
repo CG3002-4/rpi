@@ -1,11 +1,15 @@
 import sys
+import os
 import numpy as np
 import pickle
 from data_collection import DataCollection
+import preprocess
 import feature_extraction
 import train
 
 
+DATA_FOLDER = 'data'
+NOISE_FILTERS = [preprocess.medfilt, preprocess.butter_noise]
 FEATURE_EXTRACTORS = [feature_extraction.mean,
                       feature_extraction.stdev,
                       feature_extraction.correlate]
@@ -17,12 +21,14 @@ def pipeline(experiment_names):
     segments = []
 
     for experiment_name in experiment_names:
-        data_collection = DataCollection(experiment_name)
+        experiment_dir = os.path.join(DATA_FOLDER, experiment_name)
+        data_collection = DataCollection(experiment_dir)
         data_collection.load()
         segments.extend(data_collection.segment())
 
+    preprocessed_segments = preprocess.preprocess_segments(segments, NOISE_FILTERS)
     features = feature_extraction.extract_features(
-        segments, FEATURE_EXTRACTORS)
+        preprocessed_segments, FEATURE_EXTRACTORS)
     labels = np.array([segment.label for segment in segments])
 
     return features, labels

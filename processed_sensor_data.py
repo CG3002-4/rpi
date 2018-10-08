@@ -1,3 +1,6 @@
+import numpy as np
+
+
 NUM_AXES = 3
 
 
@@ -13,3 +16,7 @@ class ProcessedSensorData:
         self.body = body_values
         self.grav = grav_values
         self.gyro = gyro_values
+
+    def get_all_axes(self):
+        """Get an array consisting of all the data"""
+        return np.concatenate([self.body, self.grav, self.gyro], axis=1)
