@@ -7,7 +7,8 @@ import train
 
 
 FEATURE_EXTRACTORS = [feature_extraction.mean,
-                      feature_extraction.stdev, feature_extraction.correlate]
+                      feature_extraction.stdev,
+                      feature_extraction.correlate]
 
 
 def pipeline(experiment_names):

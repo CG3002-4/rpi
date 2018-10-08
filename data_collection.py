@@ -33,7 +33,6 @@ class DataCollection:
         """
         Takes in a list of sensor_data.SensorDatum representing one data
         point for each sensor, and inter packet time to compare latency.
-
         """
         assert len(sensors_datum) == NUM_SENSORS
 
@@ -51,7 +50,8 @@ class DataCollection:
             os.makedirs(self.experiment_dir)
 
         def dump_csv(data, filename, fmt):
-            np.savetxt(os.path.join(self.experiment_dir, filename),
+            file_location = os.path.join(self.experiment_dir, filename)
+            np.savetxt(file_location,
                        data, delimiter=',', fmt=fmt)
 
         for i, sensor_data in enumerate(self.sensors_data):
@@ -66,7 +66,7 @@ class DataCollection:
 
     def load(self):
         def load_csv(filename, dtype):
-            file_location = self.experiment_dir + filename
+            file_location = os.path.join(self.experiment_dir, filename)
             return np.loadtxt(file_location, delimiter=',', dtype=dtype)
 
         for i in range(NUM_SENSORS):
@@ -134,7 +134,7 @@ if __name__ == '__main__':
 
     NUM_MOVES = 10
     NUM_LABELS = 12
-    EXP_LOCATION = './data/test_exp/'
+    EXP_LOCATION = os.path.join('data', 'test_exp')
 
     # Construct a list representing number of data points corresponding to each move.
     move_sizes = random_array(

@@ -7,13 +7,13 @@ class Segment:
     """Represents a segment of data, containing a fixed number of data points
     per sensor.
 
-    The segment is represented as a list of either sensor_data.SensorData or processed_sensor_data.ProcessedData, 
+    The segment is represented as a list of either sensor_data.SensorData or processed_sensor_data.ProcessedData,
     i.e. for each sensor, the relevant data is put together.
     """
 
     def __init__(self, sensors_data, label):
         for sensor_data in sensors_data:
-            len(sensor_data.acc) == SEGMENT_SIZE
+            len(sensor_data.gyro) == SEGMENT_SIZE
 
         self.sensors_data = sensors_data
         self.label = label

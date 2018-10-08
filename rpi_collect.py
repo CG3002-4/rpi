@@ -1,8 +1,12 @@
+"""Code to be run on RPi while collecting data.
+
+Usage:
+    python3 rpi_collect.py host_ip port
+"""
 import socket
 import serial
 import sys
 
-# PORT = 8888
 DATA_SIZE = 32
 
 
@@ -28,4 +32,4 @@ def read_and_send_data(host_ip, port):
 
 
 if __name__ == '__main__':
-    read_and_send_data(host_ip=sys.argv[1], port=sys.argv[2])
+    read_and_send_data(host_ip=sys.argv[1], port=int(sys.argv[2]))

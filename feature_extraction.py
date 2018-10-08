@@ -95,12 +95,12 @@ def extract_features(segments, feature_extractors):
 
 
 if __name__ == '__main__':
+    import os
     import data_collection
-    import random
 
     np.set_printoptions(suppress=True)
 
-    EXP_LOCATION = './data/test_exp/'
+    EXP_LOCATION = os.path.join('data', 'test_exp')
 
     collector = data_collection.DataCollection(EXP_LOCATION)
     collector.load()
