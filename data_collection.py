@@ -80,9 +80,9 @@ class DataCollection:
             load_csv('move_start_indices.txt', dtype=int))
         self.num_data_points = len(self.sensors_data[0].acc)
 
-        try:
+        if os.path.exists(os.path.join(self.experiment_dir, 'labels.txt')):
             self.labels = list(load_csv('labels.txt', dtype=int))
-        except:
+        else:
             self.labels = None
 
     def segment(self):
