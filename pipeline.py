@@ -1,12 +1,14 @@
 import sys
 import numpy as np
 import pickle
-from machine_learning.data_collection import DataCollection
-from machine_learning import feature_extraction
-from machine_learning import train
+from data_collection import DataCollection
+import feature_extraction
+import train
 
 
-FEATURE_EXTRACTORS = [feature_extraction.mean, feature_extraction.stdev, feature_extraction.correlate]
+FEATURE_EXTRACTORS = [feature_extraction.mean,
+                      feature_extraction.stdev,
+                      feature_extraction.correlate]
 
 
 def pipeline(experiment_names):
@@ -19,7 +21,8 @@ def pipeline(experiment_names):
         data_collection.load()
         segments.extend(data_collection.segment())
 
-    features = feature_extraction.extract_features(segments, FEATURE_EXTRACTORS)
+    features = feature_extraction.extract_features(
+        segments, FEATURE_EXTRACTORS)
     labels = np.array([segment.label for segment in segments])
 
     return features, labels

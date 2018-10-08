@@ -1,12 +1,17 @@
+"""Code to be run on computer while collecting data.
+
+Usage:
+    python3 com_collect.py host_ip port experiment_dir
+"""
 import socket
 import struct
 import time
 import sys
 import numpy as np
-from machine_learning import data_collection, sensor_data
+import data_collection
+import sensor_data
 from pynput.keyboard import Listener, Key
 
-# PORT = 8888
 DATA_SIZE = 32
 
 
@@ -51,13 +56,12 @@ def recv_data(host_ip, port):
 
 
 if __name__ == '__main__':
-    data_collection = data_collection.DataCollection(
-        experiment_name=sys.argv[3])
+    data_collection = data_collection.DataCollection(experiment_dir=sys.argv[3])
 
     try:
         register_kbd_listeners(on_move=data_collection.next_move)
 
-        for unpacked_data, inter_packet_time in recv_data(host_ip=sys.argv[1], port=sys.argv[2]):
+        for unpacked_data, inter_packet_time in recv_data(host_ip=sys.argv[1], port=int(sys.argv[2])):
             sensor1_datum = sensor_data.SensorDatum(
                 unpacked_data[0:3], unpacked_data[3:6])
             sensor2_datum = sensor_data.SensorDatum(

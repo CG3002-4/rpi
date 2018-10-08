@@ -1,10 +1,9 @@
 import numpy as np
 import os
-from machine_learning import segment
-from machine_learning import sensor_data as sd
+import segment
+import sensor_data as sd
 
 
-DATA_FILE_PREFIX = 'machine_learning/data'
 NUM_SENSORS = 2
 
 
@@ -21,12 +20,12 @@ class DataCollection:
         7. Call segment() using labels
     """
 
-    def __init__(self, experiment_name):
+    def __init__(self, experiment_dir):
         self.sensors_data = np.array([sd.SensorData()
                                       for i in range(NUM_SENSORS)])
         self.inter_packet_times = []
         self.move_start_indices = []
-        self.experiment_dir = os.path.join(DATA_FILE_PREFIX, experiment_name)
+        self.experiment_dir = experiment_dir
         self.num_data_points = 0
         self.labels = None
 
@@ -34,7 +33,6 @@ class DataCollection:
         """
         Takes in a list of sensor_data.SensorDatum representing one data
         point for each sensor, and inter packet time to compare latency.
-
         """
         assert len(sensors_datum) == NUM_SENSORS
 
@@ -52,7 +50,8 @@ class DataCollection:
             os.makedirs(self.experiment_dir)
 
         def dump_csv(data, filename, fmt):
-            np.savetxt(os.path.join(self.experiment_dir, filename),
+            file_location = os.path.join(self.experiment_dir, filename)
+            np.savetxt(file_location,
                        data, delimiter=',', fmt=fmt)
 
         for i, sensor_data in enumerate(self.sensors_data):
@@ -67,15 +66,18 @@ class DataCollection:
 
     def load(self):
         def load_csv(filename, dtype):
-            return np.loadtxt(os.path.join(self.experiment_dir, filename), delimiter=',', dtype=dtype)
+            file_location = os.path.join(self.experiment_dir, filename)
+            return np.loadtxt(file_location, delimiter=',', dtype=dtype)
 
         for i in range(NUM_SENSORS):
             acc = load_csv('sensor' + str(i) + '_acc.txt', dtype=float)
             gyro = load_csv('sensor' + str(i) + '_gyro.txt', dtype=float)
             self.sensors_data[i].set_data(acc, gyro)
 
-        self.inter_packet_times = list(load_csv('inter_packet_times.txt', dtype=float))
-        self.move_start_indices = list(load_csv('move_start_indices.txt', dtype=int))
+        self.inter_packet_times = list(
+            load_csv('inter_packet_times.txt', dtype=float))
+        self.move_start_indices = list(
+            load_csv('move_start_indices.txt', dtype=int))
         self.num_data_points = len(self.sensors_data[0].acc)
 
         if os.path.exists(os.path.join(self.experiment_dir, 'labels.txt')):
@@ -110,12 +112,10 @@ class DataCollection:
                 # label with next move
                 curr_move_idx += 1
 
-            segment_data = np.array([sensor_data.get_slice(segment_start, segment_start + segment.SEGMENT_SIZE) for sensor_data in self.sensors_data])
-            segments.append(segment.Segment(segment_data, self.labels[curr_move_idx]))
             segment_data = np.array([sensor_data.get_slice(
                 segment_start, segment_start + segment.SEGMENT_SIZE) for sensor_data in self.sensors_data])
             segments.append(segment.Segment(
-                segment_data, labels[curr_move_idx]))
+                segment_data, self.labels[curr_move_idx]))
 
             segment_start += segment.SEGMENT_OFFSET
 
@@ -134,7 +134,7 @@ if __name__ == '__main__':
 
     NUM_MOVES = 10
     NUM_LABELS = 12
-    TEST_EXP_NAME = 'test_exp'
+    EXP_LOCATION = os.path.join('data', 'test_exp')
 
     # Construct a list representing number of data points corresponding to each move.
     move_sizes = random_array(
@@ -153,7 +153,7 @@ if __name__ == '__main__':
     labels = random_array(len(move_starts), 1, NUM_LABELS)
 
     # Process each data point
-    data_collection = DataCollection(TEST_EXP_NAME)
+    data_collection = DataCollection(EXP_LOCATION)
     for i in range(num_data_points):
         if i in move_starts:
             data_collection.next_move()
@@ -165,7 +165,7 @@ if __name__ == '__main__':
 
     # Save and reload
     data_collection.save()
-    data_collection = DataCollection(TEST_EXP_NAME)
+    data_collection = DataCollection(EXP_LOCATION)
     data_collection.load()
 
     # Segment
