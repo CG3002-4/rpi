@@ -9,11 +9,14 @@ from sklearn.utils import shuffle
 NUM_ESTIMATORS = 39
 
 
-def train_internal(X, y):
-    """Expects input data to be shuffled."""
+def train_internal(X, y, random_state=None):
+    """Expects input data to be shuffled.
+
+    If no value given for random_state, then will be chosen by code.
+    """
     max_features = (np.sqrt(len(X.columns)) + 1) / len(X.columns)
 
-    clf = ExtraTreesClassifier(random_state=0, max_features=max_features,
+    clf = ExtraTreesClassifier(random_state=random_state, max_features=max_features,
                                n_estimators=NUM_ESTIMATORS, max_depth=None,
                                min_samples_split=2, bootstrap=False)
     clf.fit(X, y)
@@ -23,7 +26,7 @@ def train_internal(X, y):
 
 def cross_validate(X, y):
     """Uses 10-fold validation to train and test a model."""
-    skf = StratifiedKFold(n_splits=10, shuffle=True, random_state=0)
+    skf = StratifiedKFold(n_splits=10, shuffle=True)
     skf.get_n_splits(X)
     confusion_matrices = []
     accuracy = []
@@ -83,6 +86,6 @@ def cross_validate(X, y):
 
 def train(X, y):
     # Shuffle the X and y values in unison
-    X, y = shuffle(X, y)
+    X, y = shuffle(X, y, random_state=42)
 
-    return train_internal(X, y)
+    return train_internal(X, y, random_state=42)
