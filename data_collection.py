@@ -46,6 +46,10 @@ class DataCollection:
         self.move_start_indices.append(self.num_data_points)
 
     def save(self):
+        if os.path.exists(self.experiment_dir):
+            print('Are you sure you want to do this?')
+            return None
+
         if not os.path.isdir(self.experiment_dir):
             os.makedirs(self.experiment_dir)
 
@@ -79,7 +83,6 @@ class DataCollection:
         self.move_start_indices = list(
             load_csv('move_start_indices.txt', dtype=int))
         self.num_data_points = len(self.sensors_data[0].acc)
-
 
         if os.path.exists(os.path.join(self.experiment_dir, 'labels.txt')):
             self.labels = list(load_csv('labels.txt', dtype=int))

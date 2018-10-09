@@ -68,8 +68,8 @@ def cross_validate_pipeline(X, y):
 
 def get_features_and_labels_from_args(args):
     # Note the use of the xor operator here
-    assert (args.load_file is None) ^ len(
-        args.experiment_names) == 0, 'Must specify exactly one of loading from file and loading from experiments'
+    assert (args.load_file is None) ^ (len(
+        args.experiment_names) == 0), 'Must specify exactly one of loading from file and loading from experiments'
     if args.load_file is not None:
         return load_features_and_labels(args.load_file)
     elif str.lower(args.experiment_names[0]) == 'all':
