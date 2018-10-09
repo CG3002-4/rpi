@@ -57,6 +57,7 @@ def recv_data(host_ip, port):
 
 if __name__ == '__main__':
     data_collection = data_collection.DataCollection(experiment_dir=sys.argv[3])
+    data_collection.next_move()
 
     try:
         register_kbd_listeners(on_move=data_collection.next_move)

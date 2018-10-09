@@ -56,7 +56,7 @@ def cross_validate(X, y):
     for feature, importance in feature_importance:
         print(feature + ": " + str(importance))
 
-    import matplotlib as plt
+    import matplotlib.pyplot as plt
 
     confusion_norm = confusion_avg / np.sum(confusion_avg, axis=1)
 
