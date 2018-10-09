@@ -66,14 +66,25 @@ def cross_validate_pipeline(X, y):
     train.cross_validate(X, y)
 
 
+def get_all_experiments():
+    return [x[1] for x in os.walk(DATA_FOLDER)][0]
+
+
+def exactly_one_true(*bools):
+    return bools.count(True) == 1
+
+
 def get_features_and_labels_from_args(args):
-    # Note the use of the xor operator here
-    assert (args.load_file is None) ^ (len(
-        args.experiment_names) == 0), 'Must specify exactly one of loading from file and loading from experiments'
+    assert exactly_one_true(
+        args.load_file is not None,
+        len(args.experiment_names) > 0,
+        args.all_exp
+    ), 'Must specify exactly one of loading from file, loading from particular experiments and loading from all experiments'
+
     if args.load_file is not None:
         return load_features_and_labels(args.load_file)
-    elif str.lower(args.experiment_names[0]) == 'all':
-        return feature_extraction_pipeline([x[1] for x in os.walk('./data/')][0])
+    elif args.all_exp:
+        return feature_extraction_pipeline(get_all_experiments())
     else:
         return feature_extraction_pipeline(args.experiment_names)
 
@@ -81,29 +92,44 @@ def get_features_and_labels_from_args(args):
 def create_save_features_parser(subparsers):
     parser = subparsers.add_parser(
         'save-features',
-        description='Extract features from experiment(s) and save them to a csv file.'
+        description='Extract features from experiment(s) and save them to a csv file. Load data from EITHER --experiment-names OR all-exp. Do not add both as arguments.'
     )
     parser.add_argument(
-        '--data-file', help='Filename of csv to which features will be written.')
+        '--data-file', help='Filename of csv to which features will be written')
     parser.add_argument('--experiment-names', nargs='+',
-                        default=[], help='Folder name(s) of experiment(s) to extract from. Pass \'all\' as an argument to extract from all experiments.')
+                        default=[], help='Names of experiment(s) to extract from')
+    parser.add_argument('--all-exp', action='store_true', default=False,
+                        help='Extract from all experiments')
 
     def save_features_with_args(args):
-        features, labels = feature_extraction_pipeline(args.experiment_names)
+        assert exactly_one_true(
+            args.all_exp,
+            len(args.experiment_names) > 0
+        ), 'Must specify exactly one of particular experiment names and all experiments'
+
+        if args.all_exp:
+            features, labels = feature_extraction_pipeline(get_all_experiments())
+        else:
+            features, labels = feature_extraction_pipeline(args.experiment_names)
         save_features_and_labels(features, labels, args.data_file)
 
     parser.set_defaults(func=save_features_with_args)
 
 
+def add_loading_arguments(parser):
+    parser.add_argument(
+        '--load-file', help='Name of csv file containing features to be loaded')
+    parser.add_argument('--experiment-names', nargs='+',
+                        default=[], help='Names of experiment(s) to train on')
+    parser.add_argument('--all-exp', action='store_true', help='Train on all experiments')
+
+
 def create_train_parser(subparsers):
     parser = subparsers.add_parser('train',
-                                   description='Train model from EITHER --load-file OR --experiment-names. Do not add both as arguments.')
-    parser.add_argument(
-        '--load-file', help='Name of csv file containing features to be loaded.')
+                                   description='Train model from EITHER --load-file OR --experiment-names OR --all-exp. Do not add more than one as arguments.')
     parser.add_argument(
         '--model-file', help='Name of pickle file in which to dump trained model.')
-    parser.add_argument('--experiment-names', nargs='+',
-                        default=[], help='Names of experiment(s) to train on. Pass \'all\' as an argument to train on all experiments.')
+    add_loading_arguments(parser)
 
     def train_with_args(args):
         features, labels = get_features_and_labels_from_args(args)
@@ -115,11 +141,8 @@ def create_train_parser(subparsers):
 
 def create_cross_validation_parser(subparsers):
     parser = subparsers.add_parser('cross',
-                                   description='Cross-validate model from EITHER --load-file OR --experiment-names. Do not add both as arguments.')
-    parser.add_argument(
-        '--load-file', help='Name of csv file containing features to be loaded.')
-    parser.add_argument('--experiment-names', nargs='+', default=[],
-                        help='Names of experiment(s) to cross-validate on. Pass \'all\' as an argument to cv on all experiments.')
+                                   description='Cross-validate model from EITHER --load-file OR --experiment-names OR --all-exp. Do not add more than one as arguments.')
+    add_loading_arguments(parser)
 
     def cross_validate_with_args(args):
         features, labels = get_features_and_labels_from_args(args)
