@@ -7,6 +7,7 @@ from sklearn.utils import shuffle
 
 
 NUM_ESTIMATORS = 39
+MEANING_OF_LIFE = 42
 
 
 def train_internal(X, y, random_state=None):
@@ -86,6 +87,6 @@ def cross_validate(X, y):
 
 def train(X, y):
     # Shuffle the X and y values in unison
-    X, y = shuffle(X, y, random_state=42)
+    X, y = shuffle(X, y, random_state=MEANING_OF_LIFE)
 
-    return train_internal(X, y, random_state=42)
+    return train_internal(X, y, random_state=MEANING_OF_LIFE)
