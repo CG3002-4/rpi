@@ -96,7 +96,7 @@ def create_save_features_parser(subparsers):
     )
     parser.add_argument(
         '--data-file', help='Filename of csv to which features will be written')
-    parser.add_argument('--experiment-names', nargs='+',
+    parser.add_argument('--exp-names', nargs='+',
                         default=[], help='Names of experiment(s) to extract from')
     parser.add_argument('--all-exp', action='store_true', default=False,
                         help='Extract from all experiments')
@@ -108,9 +108,11 @@ def create_save_features_parser(subparsers):
         ), 'Must specify exactly one of particular experiment names and all experiments'
 
         if args.all_exp:
-            features, labels = feature_extraction_pipeline(get_all_experiments())
+            features, labels = feature_extraction_pipeline(
+                get_all_experiments())
         else:
-            features, labels = feature_extraction_pipeline(args.experiment_names)
+            features, labels = feature_extraction_pipeline(
+                args.experiment_names)
         save_features_and_labels(features, labels, args.data_file)
 
     parser.set_defaults(func=save_features_with_args)
@@ -119,14 +121,15 @@ def create_save_features_parser(subparsers):
 def add_loading_arguments(parser):
     parser.add_argument(
         '--load-file', help='Name of csv file containing features to be loaded')
-    parser.add_argument('--experiment-names', nargs='+',
+    parser.add_argument('--exp-names', nargs='+',
                         default=[], help='Names of experiment(s) to train on')
-    parser.add_argument('--all-exp', action='store_true', help='Train on all experiments')
+    parser.add_argument('--all-exp', action='store_true',
+                        help='Train on all experiments')
 
 
 def create_train_parser(subparsers):
     parser = subparsers.add_parser('train',
-                                   description='Train model from EITHER --load-file OR --experiment-names OR --all-exp. Do not add more than one as arguments.')
+                                   description='Train model from EITHER --load-file OR --exp-names OR --all-exp. Do not add more than one as arguments.')
     parser.add_argument(
         '--model-file', help='Name of pickle file in which to dump trained model.')
     add_loading_arguments(parser)
@@ -141,7 +144,7 @@ def create_train_parser(subparsers):
 
 def create_cross_validation_parser(subparsers):
     parser = subparsers.add_parser('cross',
-                                   description='Cross-validate model from EITHER --load-file OR --experiment-names OR --all-exp. Do not add more than one as arguments.')
+                                   description='Cross-validate model from EITHER --load-file OR --exp-names OR --all-exp. Do not add more than one as arguments.')
     add_loading_arguments(parser)
 
     def cross_validate_with_args(args):
