@@ -3,19 +3,19 @@
 Usage:
     python3 rpi_collect.py host_ip port
 """
-import socket
 import serial
 import sys
+import struct
+import numpy as np
+from data_collection import DataCollection
+import sensor_data
 
 DATA_SIZE = 32
 
 
-def read_and_send_data(host_ip, port):
+def recv_data():
     ser = serial.Serial("/dev/ttyAMA0", 115200)
     ser.flushInput()
-
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((host_ip, port))
 
     while True:
         packet = ser.read(DATA_SIZE + 1)
@@ -28,8 +28,24 @@ def read_and_send_data(host_ip, port):
             print('Checksums didn\'t match')
             print()
 
-        s.sendall(packet)
+        contents = np.array([struct.unpack('>h', packet[i: i + 2])[0]
+                             for i in range(0, 32, 2)])
+        yield contents / 100
 
 
 if __name__ == '__main__':
-    read_and_send_data(host_ip=sys.argv[1], port=int(sys.argv[2]))
+    data_collection = DataCollection(experiment_dir=sys.argv[1])
+    data_collection.next_move()
+
+    try:
+        for unpacked_data in recv_data():
+            sensor1_datum = sensor_data.SensorDatum(
+                unpacked_data[0:3], unpacked_data[3:6])
+            sensor2_datum = sensor_data.SensorDatum(
+                unpacked_data[6:9], unpacked_data[9:12])
+
+            data_collection.process([sensor1_datum, sensor2_datum])
+    except KeyboardInterrupt:
+        # Use second argument as label for entire data
+        data_collection.labels = [int(sys.argv[2])]
+        data_collection.save()

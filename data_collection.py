@@ -23,23 +23,21 @@ class DataCollection:
     def __init__(self, experiment_dir):
         self.sensors_data = np.array([sd.SensorData()
                                       for i in range(NUM_SENSORS)])
-        self.inter_packet_times = []
         self.move_start_indices = []
         self.experiment_dir = experiment_dir
         self.num_data_points = 0
         self.labels = None
 
-    def process(self, sensors_datum, inter_packet_time):
+    def process(self, sensors_datum):
         """
         Takes in a list of sensor_data.SensorDatum representing one data
-        point for each sensor, and inter packet time to compare latency.
+        point for each sensor.
         """
         assert len(sensors_datum) == NUM_SENSORS
 
         for i in range(NUM_SENSORS):
             self.sensors_data[i].add_datum(sensors_datum[i])
 
-        self.inter_packet_times.append(inter_packet_time)
         self.num_data_points += 1
 
     def next_move(self):
@@ -58,7 +56,6 @@ class DataCollection:
             dump_csv(sensor_data.acc, 'sensor' + str(i) + '_acc.txt', '% f')
             dump_csv(sensor_data.gyro, 'sensor' + str(i) + '_gyro.txt', '% f')
 
-        dump_csv(self.inter_packet_times, 'inter_packet_times.txt', '%f')
         dump_csv(self.move_start_indices, 'move_start_indices.txt', '%d')
 
         if self.labels is not None:
@@ -74,8 +71,6 @@ class DataCollection:
             gyro = load_csv('sensor' + str(i) + '_gyro.txt', dtype=float)
             self.sensors_data[i].set_data(acc, gyro)
 
-        self.inter_packet_times = list(
-            load_csv('inter_packet_times.txt', dtype=float))
         self.move_start_indices = list(
             load_csv('move_start_indices.txt', dtype=int))
         self.num_data_points = len(self.sensors_data[0].acc)
