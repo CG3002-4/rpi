@@ -49,7 +49,7 @@ def save_features_and_labels(features, labels, filename):
     # Create new DataFrame with both features and labels
     data = features.copy()
     data['label'] = pd.Series(labels, index=data.index)
-    data.to_csv(filename + '.csv')
+    data.to_csv(filename + '.csv', index=False)
 
 
 def load_features_and_labels(filename):
