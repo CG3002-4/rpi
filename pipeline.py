@@ -18,17 +18,19 @@ import train
 DATA_FOLDER = 'data'
 NOISE_FILTERS = [preprocess.medfilt, preprocess.butter_noise]
 FEATURE_EXTRACTORS = [feature_extraction.mean,
-                      feature_extraction.stdev,
-                      feature_extraction.correlate]
+                      feature_extraction.var,
+                      feature_extraction.correlate,
+                      feature_extraction.max,
+                      feature_extraction.min]
 
 
-def feature_extraction_pipeline(experiment_names):
+def feature_extraction_pipeline(exp_names):
     """Implements a segmentation-preprocessing-feature_extraction pipeline."""
     segments = []
 
-    for experiment_name in experiment_names:
-        experiment_dir = os.path.join(DATA_FOLDER, experiment_name)
-        data_collection = DataCollection(experiment_dir)
+    for exp_name in exp_names:
+        exp_dir = os.path.join(DATA_FOLDER, exp_name)
+        data_collection = DataCollection(exp_dir)
         data_collection.load()
         segments.extend(data_collection.segment())
 
@@ -38,6 +40,8 @@ def feature_extraction_pipeline(experiment_names):
         preprocessed_segments, FEATURE_EXTRACTORS)
     labels = np.array([segment.label for segment in segments])
 
+    # neutral_idxs = labels != 1
+    # return features[neutral_idxs], labels[neutral_idxs]
     return features, labels
 
 
@@ -45,7 +49,7 @@ def save_features_and_labels(features, labels, filename):
     # Create new DataFrame with both features and labels
     data = features.copy()
     data['label'] = pd.Series(labels, index=data.index)
-    data.to_csv(filename + '.csv')
+    data.to_csv(filename + '.csv', index=False)
 
 
 def load_features_and_labels(filename):
@@ -77,7 +81,7 @@ def exactly_one_true(*bools):
 def get_features_and_labels_from_args(args):
     assert exactly_one_true(
         args.load_file is not None,
-        len(args.experiment_names) > 0,
+        len(args.exp_names) > 0,
         args.all_exp
     ), 'Must specify exactly one of loading from file, loading from particular experiments and loading from all experiments'
 
@@ -86,17 +90,17 @@ def get_features_and_labels_from_args(args):
     elif args.all_exp:
         return feature_extraction_pipeline(get_all_experiments())
     else:
-        return feature_extraction_pipeline(args.experiment_names)
+        return feature_extraction_pipeline(args.exp_names)
 
 
 def create_save_features_parser(subparsers):
     parser = subparsers.add_parser(
         'save-features',
-        description='Extract features from experiment(s) and save them to a csv file. Load data from EITHER --experiment-names OR all-exp. Do not add both as arguments.'
+        description='Extract features from experiment(s) and save them to a csv file. Load data from EITHER --exp-names OR all-exp. Do not add both as arguments.'
     )
     parser.add_argument(
         '--data-file', help='Filename of csv to which features will be written')
-    parser.add_argument('--experiment-names', nargs='+',
+    parser.add_argument('--exp-names', nargs='+',
                         default=[], help='Names of experiment(s) to extract from')
     parser.add_argument('--all-exp', action='store_true', default=False,
                         help='Extract from all experiments')
@@ -104,13 +108,15 @@ def create_save_features_parser(subparsers):
     def save_features_with_args(args):
         assert exactly_one_true(
             args.all_exp,
-            len(args.experiment_names) > 0
+            len(args.exp_names) > 0
         ), 'Must specify exactly one of particular experiment names and all experiments'
 
         if args.all_exp:
-            features, labels = feature_extraction_pipeline(get_all_experiments())
+            features, labels = feature_extraction_pipeline(
+                get_all_experiments())
         else:
-            features, labels = feature_extraction_pipeline(args.experiment_names)
+            features, labels = feature_extraction_pipeline(
+                args.exp_names)
         save_features_and_labels(features, labels, args.data_file)
 
     parser.set_defaults(func=save_features_with_args)
@@ -119,14 +125,15 @@ def create_save_features_parser(subparsers):
 def add_loading_arguments(parser):
     parser.add_argument(
         '--load-file', help='Name of csv file containing features to be loaded')
-    parser.add_argument('--experiment-names', nargs='+',
+    parser.add_argument('--exp-names', nargs='+',
                         default=[], help='Names of experiment(s) to train on')
-    parser.add_argument('--all-exp', action='store_true', help='Train on all experiments')
+    parser.add_argument('--all-exp', action='store_true',
+                        help='Train on all experiments')
 
 
 def create_train_parser(subparsers):
     parser = subparsers.add_parser('train',
-                                   description='Train model from EITHER --load-file OR --experiment-names OR --all-exp. Do not add more than one as arguments.')
+                                   description='Train model from EITHER --load-file OR --exp-names OR --all-exp. Do not add more than one as arguments.')
     parser.add_argument(
         '--model-file', help='Name of pickle file in which to dump trained model.')
     add_loading_arguments(parser)
@@ -141,7 +148,7 @@ def create_train_parser(subparsers):
 
 def create_cross_validation_parser(subparsers):
     parser = subparsers.add_parser('cross',
-                                   description='Cross-validate model from EITHER --load-file OR --experiment-names OR --all-exp. Do not add more than one as arguments.')
+                                   description='Cross-validate model from EITHER --load-file OR --exp-names OR --all-exp. Do not add more than one as arguments.')
     add_loading_arguments(parser)
 
     def cross_validate_with_args(args):
