@@ -46,6 +46,18 @@ def extract_feature_over_all_axes(segment, feature_extractor_over_axis, feature_
     )
 
 
+def max(segment):
+    return extract_feature_over_all_axes(segment, np.max, 'Max')
+
+
+def min(segment):
+    return extract_feature_over_all_axes(segment, np.min, 'Min')
+
+
+def var(segment):
+    return extract_feature_over_all_axes(segment, np.var, 'Var')
+
+
 def mean(segment):
     return extract_feature_over_all_axes(segment, np.mean, 'Mean')
 
