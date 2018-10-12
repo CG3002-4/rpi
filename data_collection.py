@@ -71,12 +71,11 @@ class DataCollection:
             gyro = load_csv('sensor' + str(i) + '_gyro.txt', dtype=float)
             self.sensors_data[i].set_data(acc, gyro)
 
-        self.move_start_indices = list(
-            load_csv('move_start_indices.txt', dtype=int))
+        self.move_start_indices = [load_csv('move_start_indices.txt', dtype=int)]
         self.num_data_points = len(self.sensors_data[0].acc)
 
         if os.path.exists(os.path.join(self.experiment_dir, 'labels.txt')):
-            self.labels = list(load_csv('labels.txt', dtype=int))
+            self.labels = [load_csv('labels.txt', dtype=int)]
         else:
             self.labels = None
 
