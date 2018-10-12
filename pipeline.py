@@ -9,6 +9,7 @@ import argparse
 import numpy as np
 import pandas as pd
 import pickle
+import joblib
 from data_collection import DataCollection
 import preprocess
 import feature_extraction
@@ -62,7 +63,7 @@ def train_pipeline(X, y, model_filename):
     model = train.train(X, y)
 
     with open(model_filename, 'wb') as f:
-        pickle.dump(model, f)
+        joblib.dump(model, f)
 
 
 def cross_validate_pipeline(X, y):
