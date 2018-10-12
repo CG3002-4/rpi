@@ -53,7 +53,7 @@ def save_features_and_labels(features, labels, filename):
 
 
 def load_features_and_labels(filename):
-    data = pd.read_csv(filename + '.csv')
+    data = pd.read_csv(filename + '.csv', dtype=float)
     return data.loc[:, data.columns[:-1]], data['label']
 
 
