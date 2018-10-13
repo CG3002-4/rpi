@@ -14,6 +14,9 @@ class SensorDatum:
         self.acc = acc_values
         self.gyro = gyro_values
 
+    def __repr__(self):
+        return str(self.acc) + ' ' + str(self.gyro)
+
 
 class SensorData:
     """Represents multiple data points for a single sensor."""
