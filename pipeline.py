@@ -62,7 +62,7 @@ def train_pipeline(X, y, model_filename):
     model = train.train(X, y)
 
     with open(model_filename, 'wb') as f:
-        pickle.dump(model, f, protocol=3)
+        pickle.dump(model, f)
 
 
 def cross_validate_pipeline(X, y):
