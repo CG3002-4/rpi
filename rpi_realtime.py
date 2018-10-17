@@ -10,7 +10,7 @@ from feature_extraction import extract_features_over_segment
 from pipeline import NOISE_FILTERS, FEATURE_EXTRACTORS
 
 
-class Predictor:
+class SegmentPredictor:
     def __init__(self, model_file):
         with open(model_file, 'rb') as f:
             self.model = pickle.load(f)
@@ -32,7 +32,7 @@ class Predictor:
         if self.portion_of_segment_complete == SEGMENT_SIZE:
             self.make_prediction()
 
-            # Up to segment_offset is already contained in the data
+            # Up to segment_overlap is already contained in the data
             self.portion_of_segment_complete = SEGMENT_SIZE * SEGMENT_OVERLAP
 
     def make_prediction(self):
@@ -41,6 +41,18 @@ class Predictor:
         segment = preprocess_segment(segment, NOISE_FILTERS)
         features = extract_features_over_segment(segment, FEATURE_EXTRACTORS)
         print(self.model.predict(features))
+
+
+NUM_PREV_PREDS_TO_KEEP = 10
+
+
+class Predictor:
+    def __init__(self, model_file):
+        self.segment_predictor = SegmentPredictor(model_file)
+        self.previous_predictions = np.empty((NUM_PREV_PREDS_TO_KEEP,))
+
+    def process(self, sensors_datum):
+        self.segment_predictor.process(sensors_datum)
 
 
 if __name__ == '__main__':
