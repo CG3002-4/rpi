@@ -3,6 +3,8 @@ import processed_sensor_data as psd
 import segment as seg
 from scipy import signal
 from data_collection import NUM_SENSORS
+import warnings
+warnings.filterwarnings('ignore', category=FutureWarning)
 
 
 SAMPLING_FREQ = 50
