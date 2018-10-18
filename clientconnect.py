@@ -5,6 +5,7 @@ import base64
 import sys
 import os
 import socket
+import time
 
 
 PORT = 8888
@@ -15,12 +16,22 @@ secret_key = '1234567887654321'
 BS = 16
 pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
 
-#Add handshaking code
-
-def read_and_analyse_data():
+def handshake():
     ser = serial.Serial("/dev/ttyAMA0", 115200)
     ser.flushInput()
+    
+    time.sleep(5)
+    ser.write("4".encode('utf8'))
+    ack = ser.read(1)
+    
+    if (ack[0] == 6):
+        ser.write("3".encode('utf8'))
+    else:
+        assert False, "Handshaking failed"
+        
+    return ser
 
+def read_and_analyse_data(ser):
     while True:
         packet = ser.read(DATA_SIZE + 1)
 
@@ -50,6 +61,7 @@ def create_socket(host, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((host, port))
     print("Socket connected")
+    
     return s
     
 def switch_action(action_num):
@@ -61,6 +73,7 @@ def switch_action(action_num):
         5: "turnclap"
         11: "logout"
     }
+    
     return switcher.get(action_num, "Invalid move")
         
 
