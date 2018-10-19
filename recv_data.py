@@ -3,7 +3,7 @@ import struct
 import numpy as np
 
 
-DATA_SIZE = 32
+DATA_SIZE = 28
 
 
 def recv_data():
@@ -23,5 +23,5 @@ def recv_data():
             print()
 
         contents = np.array([struct.unpack('>h', packet[i: i + 2])[0]
-                             for i in range(0, 32, 2)])
+                             for i in range(0, DATA_SIZE, 2)])
         yield contents / 100
