@@ -8,7 +8,7 @@ from segment import Segment, SEGMENT_SIZE, SEGMENT_OVERLAP
 from preprocess import preprocess_segment
 from feature_extraction import extract_features_over_segment
 from pipeline import NOISE_FILTERS, FEATURE_EXTRACTORS
-
+import time
 
 class SegmentPredictor:
     def __init__(self, model_file):
@@ -44,9 +44,9 @@ class SegmentPredictor:
         return self.model.predict_proba(features)[0]
 
 
-NUM_PREDS_TO_KEEP = 4
+NUM_PREDS_TO_KEEP = 6
 NUM_MOVES = 5
-PREDICTION_THRESHOLD = 0.9
+PREDICTION_THRESHOLD = 0.8
 
 
 class Predictor:
@@ -74,7 +74,8 @@ class Predictor:
         print('Probabilities: ' + str(normalized_probs))
 
         if max(normalized_probs) > PREDICTION_THRESHOLD:
-            print(max(normalized_probs))
+            print(np.argmax(normalized_probs) + 1)
+            self.predictions = np.empty((0, NUM_MOVES))
             return np.argmax(normalized_probs) + 1
 
 
