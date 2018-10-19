@@ -1,13 +1,13 @@
 import sys
 import pickle
 import numpy as np
-from recv_data import recv_data
 from data_collection import NUM_SENSORS
 from sensor_data import SensorDatum, sensor_datums_to_sensor_data
 from segment import Segment, SEGMENT_SIZE, SEGMENT_OVERLAP
 from preprocess import preprocess_segment
 from feature_extraction import extract_features_over_segment
 from pipeline import NOISE_FILTERS, FEATURE_EXTRACTORS
+from client_connect import handshake, read_and_analyse_data
 import time
 
 class SegmentPredictor:
@@ -80,13 +80,15 @@ class Predictor:
 
 
 if __name__ == '__main__':
-    np.set_printoptions(suppress=True)
+    ser = handshake()
 
+    np.set_printoptions(suppress=True)
+    
     predictor = Predictor(model_file=sys.argv[1] + '.pb')
 
     print('Loaded model')
 
-    for unpacked_data in recv_data():
+    for unpacked_data in read_and_analyse_data(ser):
         sensor1_datum = SensorDatum(
             unpacked_data[0:3], unpacked_data[3:6])
         sensor2_datum = SensorDatum(
