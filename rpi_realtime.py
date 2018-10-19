@@ -69,8 +69,8 @@ class Predictor:
 
     def make_prediction(self):
         probabilities = np.prod(self.predictions, axis=0)
-        print('Probabilities' + str(probabilities / np.sum(probabilities)))
         normalized_probs = probabilities / np.sum(probabilities)
+        print('Probabilities: ' + str(normalized_probs))
 
         if max(normalized_probs) > PREDICTION_THRESHOLD:
             print(max(normalized_probs))
