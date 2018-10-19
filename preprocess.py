@@ -3,6 +3,8 @@ import processed_sensor_data as psd
 import segment as seg
 from scipy import signal
 from data_collection import NUM_SENSORS
+import warnings
+warnings.filterwarnings('ignore', category=FutureWarning)
 
 
 SAMPLING_FREQ = 50
@@ -50,22 +52,20 @@ def preprocess_segment(segment, noise_filters):
     processed_sensors_data = []
 
     for i in range(NUM_SENSORS):
-        acc = segment.sensors_data[i].acc
-        gyro = segment.sensors_data[i].acc
-
         for noise_filter in noise_filters:
-            acc = filter_data(noise_filter, acc)
-            gyro = filter_data(noise_filter, gyro)
+            segment.sensors_data[i].acc = filter_data(noise_filter, segment.sensors_data[i].acc)
+            segment.sensors_data[i].gyro = filter_data(noise_filter, segment.sensors_data[i].gyro)
 
-        body = filter_data(butter_body, acc)
-        grav = filter_data(butter_gravity, acc)
+        # body = filter_data(butter_body, acc)
+        # grav = filter_data(butter_gravity, acc)
+        #
+        # processed_sensors_data.append(psd.ProcessedSensorData(
+        #     body_values=body,
+        #     grav_values=grav,
+        #     gyro_values=gyro
+        # ))
 
-        processed_sensors_data.append(psd.ProcessedSensorData(
-            body_values=body,
-            grav_values=grav,
-            gyro_values=gyro
-        ))
-
+    return segment
     return seg.Segment(sensors_data=processed_sensors_data, label=segment.label)
 
 

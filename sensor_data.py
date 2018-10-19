@@ -14,6 +14,9 @@ class SensorDatum:
         self.acc = acc_values
         self.gyro = gyro_values
 
+    def __repr__(self):
+        return str(self.acc) + ' ' + str(self.gyro)
+
 
 class SensorData:
     """Represents multiple data points for a single sensor."""
@@ -43,3 +46,11 @@ class SensorData:
     def get_all_axes(self):
         """Get an array consisting of all the data"""
         return np.concatenate([self.acc, self.gyro], axis=1)
+
+
+def sensor_datums_to_sensor_data(sensor_datums):
+    sensor_data = SensorData()
+    acc = np.array([sensor_datum.acc for sensor_datum in sensor_datums])
+    gyro = np.array([sensor_datum.gyro for sensor_datum in sensor_datums])
+    sensor_data.set_data(acc, gyro)
+    return sensor_data

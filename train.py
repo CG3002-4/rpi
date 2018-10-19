@@ -40,7 +40,7 @@ def cross_validate(X, y):
     skf = StratifiedKFold(n_splits=10, shuffle=True, random_state=0)
     skf.get_n_splits(X)
 
-    classifiers = [(RandomForestClassifier, True),
+    classifiers = [#(RandomForestClassifier, True),
                    (ExtraTreesClassifier, False)]
 
     for classifier, bootstrap in classifiers:
