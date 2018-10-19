@@ -39,13 +39,14 @@ class SegmentPredictor:
         # TODO: Takes too much time
         sensors_data = np.apply_along_axis(func1d=sensor_datums_to_sensor_data, arr=self.data, axis=0)
         segment = Segment(sensors_data, None)
+        segment = preprocess_segment(segment, NOISE_FILTERS)
         features = extract_features_over_segment(segment, FEATURE_EXTRACTORS)
         return self.model.predict_proba(features)[0]
 
 
-NUM_PREDS_TO_KEEP = 15
+NUM_PREDS_TO_KEEP = 4
 NUM_MOVES = 5
-PREDICTION_THRESHOLD = 0.8
+PREDICTION_THRESHOLD = 0.9
 
 
 class Predictor:
