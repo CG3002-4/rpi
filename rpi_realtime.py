@@ -7,7 +7,7 @@ from segment import Segment, SEGMENT_SIZE, SEGMENT_OVERLAP
 from preprocess import preprocess_segment
 from feature_extraction import extract_features_over_segment
 from pipeline import NOISE_FILTERS, FEATURE_EXTRACTORS
-from client_connect import handshake, read_and_analyse_data
+from clientconnect import handshake, read_and_analyse_data
 import time
 
 class SegmentPredictor:

@@ -1,12 +1,14 @@
 from Crypto.Cipher import AES
 from Crypto import Random
 
+import numpy as np
 import base64
 import sys
 import os
 import socket
 import time
-
+import serial
+import struct
 
 PORT = 8888
 DATA_SIZE = 32
@@ -70,7 +72,7 @@ def switch_action(action_num):
         2: "number7",
         3: "chicken",
         4: "sidestep",
-        5: "turnclap"
+        5: "turnclap",
         11: "logout"
     }
     

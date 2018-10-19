@@ -6,7 +6,7 @@ Usage:
 import sys
 from data_collection import DataCollection
 import sensor_data
-from client_connect import handshake, read_and_analyse_data
+from clientconnect import handshake, read_and_analyse_data
 
 
 if __name__ == '__main__':
