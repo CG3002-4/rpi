@@ -78,16 +78,13 @@ class Predictor:
 
 
 if __name__ == '__main__':
-    import random
-
-    def random_array(length, low, diff):
-        return [random.random() * diff + low for i in range(length)]
-
     np.set_printoptions(suppress=True)
 
     predictor = Predictor(model_file=sys.argv[1] + '.pb')
 
-    for unpacked_data in [random_array(12, -5, 5) for j in range(200)]:
+    print('Loaded model')
+
+    for unpacked_data in recv_data():
         sensor1_datum = SensorDatum(
             unpacked_data[0:3], unpacked_data[3:6])
         sensor2_datum = SensorDatum(
