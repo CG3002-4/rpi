@@ -3,7 +3,7 @@ import struct
 import numpy as np
 
 
-DATA_SIZE = 28
+DATA_SIZE = 32
 
 
 def recv_data():
