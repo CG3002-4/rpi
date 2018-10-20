@@ -12,8 +12,7 @@ class Segment:
     """
 
     def __init__(self, sensors_data, label):
-        for sensor_data in sensors_data:
-            len(sensor_data.gyro) == SEGMENT_SIZE
+        assert sensors_data.shape == (SEGMENT_SIZE, 12)
 
         self.sensors_data = sensors_data
         self.label = label

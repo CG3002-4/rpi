@@ -21,7 +21,7 @@ def train_internal(X, y, classifier, random_state, bootstrap):
 
     If no value given for random_state, then will be chosen by code.
     """
-    MAX_FEATURES = (np.sqrt(len(X.columns)) + 1) / len(X.columns)
+    MAX_FEATURES = (np.sqrt(X.shape[1]) + 1) / X.shape[1]
 
     clf = classifier(random_state=random_state, max_features=MAX_FEATURES,
                      n_estimators=NUM_ESTIMATORS, max_depth=None,
@@ -52,7 +52,7 @@ def cross_validate(X, y):
 
         for seed in SEEDS:
             for train_index, test_index in skf.split(X, y):
-                train_X, test_X = X.iloc[train_index], X.iloc[test_index]
+                train_X, test_X = X[train_index], X[test_index]
                 train_y, test_y = y[train_index], y[test_index]
 
                 # std_scale = StandardScaler().fit(train_X)
@@ -78,11 +78,11 @@ def cross_validate(X, y):
 
         # View a list of the features and their importance scores
         feature_impt_list = np.mean(feature_impt_list, axis=0)
-        feature_importance = list(zip(X, feature_impt_list))
+        feature_importance = list(zip(range(X.shape[1]), feature_impt_list))
         feature_importance.sort(key=lambda x: x[1])
         print("Feature Importance:")
         for feature, importance in feature_importance:
-            print(feature + ": " + str(importance))
+            print(str(feature) + ": " + str(importance))
 
         import matplotlib.pyplot as plt
 
@@ -120,6 +120,6 @@ if __name__ == '__main__':
     import pandas as pd
 
     data = pd.read_csv('feature.csv')
-    features, labels = data.loc[:, data.columns[:-1]], data['label']
+    features, labels = data[:, :-1], data[:, -1]
 
     cross_validate(features, labels)

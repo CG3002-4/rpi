@@ -7,7 +7,7 @@ import warnings
 warnings.filterwarnings('ignore', category=FutureWarning)
 
 
-SAMPLING_FREQ = 50
+SAMPLING_FREQ = 60
 NYQ_FREQ = SAMPLING_FREQ * 0.5
 
 
@@ -15,11 +15,7 @@ def medfilt(axis):
     return signal.medfilt(axis)
 
 
-def butter_noise(axis):
-    cutoff_freq = 20.0 / NYQ_FREQ
-    order = 3
-    sos = signal.butter(order, cutoff_freq, btype='lowpass', output='sos')
-    return signal.sosfiltfilt(sos, axis, padlen=0)
+SOS = signal.butter(3, 20.0 / NYQ_FREQ, btype='lowpass', output='sos')
 
 
 def butter_grav_body_sep(axis, filter_type):
@@ -41,7 +37,7 @@ def filter_data(filter, data):
     return np.apply_along_axis(filter, 0, data)
 
 
-def preprocess_segment(segment, noise_filters):
+def preprocess_segment(segment):
     """Takes in a segment and returns it with processed sensor data.
 
     Each segment is first noise-filtered then acc data is split into
@@ -49,31 +45,17 @@ def preprocess_segment(segment, noise_filters):
 
     The noise filters are applied in left to right order.
     """
-    processed_sensors_data = []
-
-    for i in range(NUM_SENSORS):
-        for noise_filter in noise_filters:
-            segment.sensors_data[i].acc = filter_data(noise_filter, segment.sensors_data[i].acc)
-            segment.sensors_data[i].gyro = filter_data(noise_filter, segment.sensors_data[i].gyro)
-
-        # body = filter_data(butter_body, acc)
-        # grav = filter_data(butter_gravity, acc)
-        #
-        # processed_sensors_data.append(psd.ProcessedSensorData(
-        #     body_values=body,
-        #     grav_values=grav,
-        #     gyro_values=gyro
-        # ))
-
+    sensors_data = np.apply_along_axis(func1d=signal.medfilt, arr=segment.sensors_data, axis=0)
+    sensors_data = np.apply_along_axis(func1d=lambda axis: signal.sosfiltfilt(SOS, axis, padlen=0), arr=segment.sensors_data, axis=0)
+    segment.sensors_data = sensors_data
     return segment
-    return seg.Segment(sensors_data=processed_sensors_data, label=segment.label)
 
 
-def preprocess_segments(segments, noise_filters):
+def preprocess_segments(segments):
     """Takes in a list of segments and returns a new list of segments that
     contain processed sensor data.
     """
-    return [preprocess_segment(segment, noise_filters) for segment in segments]
+    return [preprocess_segment(segment) for segment in segments]
 
 
 if __name__ == '__main__':
@@ -82,36 +64,35 @@ if __name__ == '__main__':
 
     np.set_printoptions(suppress=True)
 
-    EXP_LOCATION = os.path.join('data', 'test_exp')
+    EXP_LOCATION = os.path.join('data', 'varunchicken1')
 
     collector = data_collection.DataCollection(EXP_LOCATION)
     collector.load()
 
     segments = collector.segment()
-    processed_segments = (preprocess_segments(
-        segments[0:3], [medfilt, butter_noise]))
+    processed_segments = (preprocess_segments(segments[0:3]))
 
-    import matplotlib.pyplot as plt
-    import plot
-
-    plt.figure(facecolor="white", figsize=(15, 10))
-
-    plt.subplot(131)
-    plot.plot_data(segments[0].sensors_data[0].acc, 'Acc')
-
-    plt.subplot(132)
-    filtered_acc = filter_data(
-        butter_noise,
-        filter_data(
-            medfilt,
-            segments[0].sensors_data[0].acc
-        )
-    )
-    plot.plot_data(filtered_acc, 'Filtered_acc')
-
-    plt.subplot(133)
-    body_plus_grav = (processed_segments[0].sensors_data[0].body +
-                      processed_segments[0].sensors_data[0].grav)
-    plot.plot_data(body_plus_grav, 'Body_plus_grav')
-
-    plt.show()
+    # import matplotlib.pyplot as plt
+    # import plot
+    #
+    # plt.figure(facecolor="white", figsize=(15, 10))
+    #
+    # plt.subplot(131)
+    # plot.plot_data(segments[0].sensors_data[0].acc, 'Acc')
+    #
+    # plt.subplot(132)
+    # filtered_acc = filter_data(
+    #     butter_noise,
+    #     filter_data(
+    #         medfilt,
+    #         segments[0].sensors_data[0].acc
+    #     )
+    # )
+    # plot.plot_data(filtered_acc, 'Filtered_acc')
+    #
+    # plt.subplot(133)
+    # body_plus_grav = (processed_segments[0].sensors_data[0].body +
+    #                   processed_segments[0].sensors_data[0].grav)
+    # plot.plot_data(body_plus_grav, 'Body_plus_grav')
+    #
+    # plt.show()

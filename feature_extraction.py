@@ -90,20 +90,32 @@ def correlate(segment):
     )
 
 
-def extract_features_over_segment(segment, feature_extractors):
+def extract_features_over_segment(segment):
     """A feature extractor is a function that accepts a segment and
     returns a dataframe of features.
     """
-    return pd.concat([feature_extractor(segment) for feature_extractor in feature_extractors], axis='columns')
+    sensors_data = segment.sensors_data
+    means = np.mean(sensors_data, axis=0)
+    vars = np.var(sensors_data, axis=0)
+    mins = np.min(sensors_data, axis=0)
+    maxs = np.max(sensors_data, axis=0)
+    corrs = np.hstack(
+        [np.corrcoef(np.transpose(sensors_data[:, 0:3]))[[0, 0, 1], [1, 2, 2]],
+         np.corrcoef(np.transpose(sensors_data[:, 3:6]))[[0, 0, 1], [1, 2, 2]],
+         np.corrcoef(np.transpose(sensors_data[:, 6:9]))[[0, 0, 1], [1, 2, 2]],
+         np.corrcoef(np.transpose(sensors_data[:, 9:12]))[[0, 0, 1], [1, 2, 2]]
+         ]
+    )
+    return np.hstack([means, vars, mins, maxs, corrs])
 
 
-def extract_features(segments, feature_extractors):
+def extract_features(segments):
     """A feature extractor is a function that accepts a segment and
     returns a list of features.
 
     Features are extracted for each segment and returned as rows of a dataframe.
     """
-    return pd.concat([extract_features_over_segment(segment, feature_extractors) for segment in segments], ignore_index=True)
+    return np.array([extract_features_over_segment(segment) for segment in segments])
 
 
 if __name__ == '__main__':
@@ -113,14 +125,11 @@ if __name__ == '__main__':
 
     np.set_printoptions(suppress=True)
 
-    EXP_LOCATION = os.path.join('data', 'test_exp')
+    EXP_LOCATION = os.path.join('data', 'varunchicken1')
 
     collector = data_collection.DataCollection(EXP_LOCATION)
     collector.load()
 
     segments = collector.segment()
-    preprocessed_segments = preprocess.preprocess_segments(
-        segments[0:3],
-        [preprocess.medfilt, preprocess.butter_noise]
-    )
-    print(extract_features(preprocessed_segments, [mean, stdev, correlate]))
+    segments = preprocess.preprocess_segments(segments[0:3])
+    print(extract_features(segments).shape)

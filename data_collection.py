@@ -21,8 +21,7 @@ class DataCollection:
     """
 
     def __init__(self, experiment_dir):
-        self.sensors_data = np.array([sd.SensorData()
-                                      for i in range(NUM_SENSORS)])
+        self.sensors_data = np.empty((0, 6 * NUM_SENSORS))
         self.move_start_indices = []
         self.experiment_dir = experiment_dir
         self.num_data_points = 0
@@ -33,10 +32,9 @@ class DataCollection:
         Takes in a list of sensor_data.SensorDatum representing one data
         point for each sensor.
         """
-        assert len(sensors_datum) == NUM_SENSORS
+        assert len(sensors_datum) == 6 * NUM_SENSORS
 
-        for i in range(NUM_SENSORS):
-            self.sensors_data[i].add_datum(sensors_datum[i])
+        self.sensors_data = np.append(self.sensors_data, np.array([sensors_datum]), axis=0)
 
         self.num_data_points += 1
 
@@ -52,9 +50,9 @@ class DataCollection:
             np.savetxt(file_location,
                        data, delimiter=',', fmt=fmt)
 
-        for i, sensor_data in enumerate(self.sensors_data):
-            dump_csv(sensor_data.acc, 'sensor' + str(i) + '_acc.txt', '% f')
-            dump_csv(sensor_data.gyro, 'sensor' + str(i) + '_gyro.txt', '% f')
+        for i in range(NUM_SENSORS):
+            dump_csv(self.sensors_data[:, 6 * i: 6 * i + 3], 'sensor' + str(i) + '_acc.txt', '% f')
+            dump_csv(self.sensors_data[:, 6 * i + 3: 6 * i + 6], 'sensor' + str(i) + '_gyro.txt', '% f')
 
         dump_csv(self.move_start_indices, 'move_start_indices.txt', '%d')
 
@@ -66,13 +64,18 @@ class DataCollection:
             file_location = os.path.join(self.experiment_dir, filename)
             return np.loadtxt(file_location, delimiter=',', dtype=dtype)
 
+        self.sensors_data = None
+
         for i in range(NUM_SENSORS):
             acc = load_csv('sensor' + str(i) + '_acc.txt', dtype=float)
             gyro = load_csv('sensor' + str(i) + '_gyro.txt', dtype=float)
-            self.sensors_data[i].set_data(acc, gyro)
+            if self.sensors_data is not None:
+                self.sensors_data = np.hstack([self.sensors_data, acc, gyro])
+            else:
+                self.sensors_data = np.hstack([acc, gyro])
 
         self.move_start_indices = [load_csv('move_start_indices.txt', dtype=int)]
-        self.num_data_points = len(self.sensors_data[0].acc)
+        self.num_data_points = len(self.sensors_data)
 
         if os.path.exists(os.path.join(self.experiment_dir, 'labels.txt')):
             self.labels = [load_csv('labels.txt', dtype=int)]
@@ -106,10 +109,8 @@ class DataCollection:
                 # label with next move
                 curr_move_idx += 1
 
-            segment_data = np.array([sensor_data.get_slice(
-                segment_start, segment_start + segment.SEGMENT_SIZE) for sensor_data in self.sensors_data])
-            segments.append(segment.Segment(
-                segment_data, self.labels[curr_move_idx]))
+            segment_data = self.sensors_data[segment_start: segment_start + segment.SEGMENT_SIZE]
+            segments.append(segment.Segment(segment_data, self.labels[curr_move_idx]))
 
             segment_start += segment.SEGMENT_OFFSET
 
@@ -128,7 +129,7 @@ if __name__ == '__main__':
 
     NUM_MOVES = 10
     NUM_LABELS = 12
-    EXP_LOCATION = os.path.join('data', 'test_exp')
+    EXP_LOCATION = os.path.join('data_blah', 'test_exp')
 
     # Construct a list representing number of data points corresponding to each move.
     move_sizes = random_array(
@@ -139,11 +140,7 @@ if __name__ == '__main__':
     print(move_starts)
 
     # Generate random sensor data
-    sensors_data = [[sd.SensorDatum(random_array(sd.NUM_AXES, 0, 10), random_array(sd.NUM_AXES, 0, 10))
-                     for i in range(NUM_SENSORS)
-                     ]
-                    for j in range(num_data_points)
-                    ]
+    sensors_data = [random_array(NUM_SENSORS * 6, 0, 10) for i in range(num_data_points)]
     labels = random_array(len(move_starts), 1, NUM_LABELS)
 
     # Process each data point
@@ -151,7 +148,7 @@ if __name__ == '__main__':
     for i in range(num_data_points):
         if i in move_starts:
             data_collection.next_move()
-        data_collection.process(sensors_data[i], random.random())
+        data_collection.process(sensors_data[i])
 
     data_collection.labels = labels
 
@@ -159,10 +156,10 @@ if __name__ == '__main__':
 
     # Save and reload
     data_collection.save()
-    data_collection = DataCollection(EXP_LOCATION)
+    data_collection = DataCollection('data/varunchicken1')
     data_collection.load()
 
     # Segment
     segments = data_collection.segment()
-    print(labels)
+    print(data_collection.labels)
     print(segments)

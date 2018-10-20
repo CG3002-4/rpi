@@ -16,12 +16,12 @@ import train
 
 
 DATA_FOLDER = 'data'
-NOISE_FILTERS = [preprocess.medfilt, preprocess.butter_noise]
-FEATURE_EXTRACTORS = [feature_extraction.mean,
-                      feature_extraction.var,
-                      feature_extraction.correlate,
-                      feature_extraction.max,
-                      feature_extraction.min]
+# NOISE_FILTERS = [preprocess.medfilt, preprocess.butter_noise]
+# FEATURE_EXTRACTORS = [feature_extraction.mean,
+#                       feature_extraction.var,
+#                       feature_extraction.correlate,
+#                       feature_extraction.max,
+#                       feature_extraction.min]
 
 
 def feature_extraction_pipeline(exp_names):
@@ -34,10 +34,8 @@ def feature_extraction_pipeline(exp_names):
         data_collection.load()
         segments.extend(data_collection.segment())
 
-    preprocessed_segments = preprocess.preprocess_segments(
-        segments, NOISE_FILTERS)
-    features = feature_extraction.extract_features(
-        preprocessed_segments, FEATURE_EXTRACTORS)
+    preprocessed_segments = preprocess.preprocess_segments(segments)
+    features = feature_extraction.extract_features(preprocessed_segments)
     labels = np.array([segment.label for segment in segments])
 
     # neutral_idxs = labels != 1
@@ -47,14 +45,15 @@ def feature_extraction_pipeline(exp_names):
 
 def save_features_and_labels(features, labels, filename):
     # Create new DataFrame with both features and labels
-    data = features.copy()
-    data['label'] = pd.Series(labels, index=data.index)
-    data.to_csv(filename + '.csv', index=False)
+    data = np.empty((features.shape[0], features.shape[1] + 1))
+    data[:, :-1] = features
+    data[:, -1] = labels
+    np.savetxt(filename + '.csv', data, delimiter=',')
 
 
 def load_features_and_labels(filename):
-    data = pd.read_csv(filename + '.csv', dtype=float)
-    return data.loc[:, data.columns[:-1]], data['label']
+    data = np.loadtxt(filename + '.csv', delimiter=',', dtype=float)
+    return data[:, :-1], data[:, -1].astype(int)
 
 
 def train_pipeline(X, y, model_filename):
