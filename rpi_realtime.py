@@ -39,13 +39,14 @@ class SegmentPredictor:
         segment = Segment(self.data, None)
         segment = preprocess_segment(segment)
         features = extract_features_over_segment(segment)
-        
+        features = np.nan_to_num(features)
+
         return self.model.predict_proba(features.reshape(1, -1))[0]
 
 
-NUM_PREDS_TO_KEEP = 6
+NUM_PREDS_TO_KEEP = 2
 NUM_MOVES = 6
-PREDICTION_THRESHOLD = 0.8
+PREDICTION_THRESHOLD = 0.7
 
 
 class Predictor:
@@ -80,6 +81,7 @@ class Predictor:
 
 if __name__ == '__main__':
     np.set_printoptions(suppress=True)
+    np.seterr(divide='ignore', invalid='ignore') 
 
     predictor = Predictor(model_file=sys.argv[1] + '.pb')
 
@@ -88,4 +90,4 @@ if __name__ == '__main__':
     for unpacked_data in recv_data():
         # Need to call server comm code here
         predictor.process(unpacked_data[:12])
-        
+
