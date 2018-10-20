@@ -7,7 +7,6 @@ from sensor_data import SensorDatum, sensor_datums_to_sensor_data
 from segment import Segment, SEGMENT_SIZE, SEGMENT_OVERLAP
 from preprocess import preprocess_segment
 from feature_extraction import extract_features_over_segment
-from pipeline import NOISE_FILTERS, FEATURE_EXTRACTORS
 import time
 
 class SegmentPredictor:
@@ -15,11 +14,11 @@ class SegmentPredictor:
         with open(model_file, 'rb') as f:
             self.model = pickle.load(f)
 
-        self.data = np.empty((0, NUM_SENSORS))
+        self.data = np.empty((0, 12))
         self.portion_of_segment_complete = 0
 
     def process(self, sensors_datum):
-        assert len(sensors_datum) == NUM_SENSORS
+        assert len(sensors_datum) == 12
 
         if len(self.data) < SEGMENT_SIZE:
             self.data = np.vstack([self.data, sensors_datum])
@@ -37,15 +36,15 @@ class SegmentPredictor:
 
     def make_prediction(self):
         # TODO: Takes too much time
-        sensors_data = np.apply_along_axis(func1d=sensor_datums_to_sensor_data, arr=self.data, axis=0)
-        segment = Segment(sensors_data, None)
-        segment = preprocess_segment(segment, NOISE_FILTERS)
-        features = extract_features_over_segment(segment, FEATURE_EXTRACTORS)
-        return self.model.predict_proba(features)[0]
+        segment = Segment(self.data, None)
+        segment = preprocess_segment(segment)
+        features = extract_features_over_segment(segment)
+        
+        return self.model.predict_proba(features.reshape(1, -1))[0]
 
 
 NUM_PREDS_TO_KEEP = 6
-NUM_MOVES = 5
+NUM_MOVES = 6
 PREDICTION_THRESHOLD = 0.8
 
 
@@ -74,9 +73,9 @@ class Predictor:
         print('Probabilities: ' + str(normalized_probs))
 
         if max(normalized_probs) > PREDICTION_THRESHOLD:
-            print(np.argmax(normalized_probs) + 1)
+            print(np.argmax(normalized_probs))
             self.predictions = np.empty((0, NUM_MOVES))
-            return np.argmax(normalized_probs) + 1
+            return np.argmax(normalized_probs)
 
 
 if __name__ == '__main__':
@@ -87,10 +86,6 @@ if __name__ == '__main__':
     print('Loaded model')
 
     for unpacked_data in recv_data():
-        sensor1_datum = SensorDatum(
-            unpacked_data[0:3], unpacked_data[3:6])
-        sensor2_datum = SensorDatum(
-            unpacked_data[6:9], unpacked_data[9:12])
-
         # Need to call server comm code here
-        predictor.process([sensor1_datum, sensor2_datum])
+        predictor.process(unpacked_data[:12])
+        
