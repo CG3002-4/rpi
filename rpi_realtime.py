@@ -53,6 +53,7 @@ class Predictor:
     def __init__(self, model_file):
         self.segment_predictor = SegmentPredictor(model_file)
         self.predictions = np.empty((0, NUM_MOVES))
+        self.prevPrediction = None
 
     def process(self, sensors_datum):
         segment_prediction = self.segment_predictor.process(sensors_datum)
@@ -73,10 +74,20 @@ class Predictor:
         normalized_probs = probabilities / np.sum(probabilities)
         print('Probabilities: ' + str(normalized_probs))
 
-        if max(normalized_probs) > PREDICTION_THRESHOLD:
-            print(np.argmax(normalized_probs))
-            self.predictions = np.empty((0, NUM_MOVES))
-            return np.argmax(normalized_probs)
+        if (max(normalized_probs) > PREDICTION_THRESHOLD):
+            prediction = np.argmax(normalized_probs)
+
+            if (self.prevPrediction == 0):    
+                print(np.argmax(normalized_probs))
+                self.predictions = np.empty((0, NUM_MOVES))
+
+                if (prediction != 0):
+                    self.prevPrediction = prediction
+
+                return prediction
+            elif (prediction == 0):
+                print('Ready to predict!')
+                self.prevPrediction = 0
 
 
 if __name__ == '__main__':
