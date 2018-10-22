@@ -93,7 +93,18 @@ if __name__ == '__main__':
 
     print('Loaded model')
 
+    energy = 0
+    prev_time = None
+
     for unpacked_data in recv_data():
         # Need to call server comm code here
+        voltage = unpacked_data[12]
+        current = unpacked_data[13]
+        power = voltage * current
+
+        if prev_time is not None:
+            energy += power * (time.time() - prev_time)
+
+        prev_time = time.time()
+
         if predictor.process(unpacked_data[:12]) is not None:
-            print(unpacked_data[12:])
