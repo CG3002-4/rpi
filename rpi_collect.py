@@ -5,16 +5,17 @@ Usage:
 """
 import sys
 from data_collection import DataCollection
-from recv_data import recv_data
 import sensor_data
+from clientconnect import handshake, read_and_analyse_data
 
 
 if __name__ == '__main__':
+    ser = handshake()
     data_collection = DataCollection(experiment_dir=sys.argv[1])
     data_collection.next_move()
 
     try:
-        for unpacked_data in recv_data():
+        for unpacked_data in read_and_analyse_data(ser):
             sensor1_datum = sensor_data.SensorDatum(
                 unpacked_data[0:3], unpacked_data[3:6])
             sensor2_datum = sensor_data.SensorDatum(

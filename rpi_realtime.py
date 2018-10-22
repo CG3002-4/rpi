@@ -2,12 +2,12 @@ import sys
 import pickle
 import numpy as np
 from recv_data import recv_data
-from data_collection import NUM_SENSORS
-from sensor_data import SensorDatum, sensor_datums_to_sensor_data
 from segment import Segment, SEGMENT_SIZE, SEGMENT_OVERLAP
 from preprocess import preprocess_segment
 from feature_extraction import extract_features_over_segment
+import clientconnect
 import time
+
 
 class SegmentPredictor:
     def __init__(self, model_file):
@@ -78,7 +78,7 @@ class Predictor:
         normalized_probs = probabilities / np.sum(probabilities)
         print('Probabilities: ' + str(normalized_probs))
 
-        if (max(normalized_probs) > PREDICTION_THRESHOLD):
+        if max(normalized_probs) > PREDICTION_THRESHOLD:
             prediction = np.argmax(normalized_probs)
             self.prevPredictionTime = time.time()
 
@@ -89,6 +89,7 @@ if __name__ == '__main__':
     np.set_printoptions(suppress=True)
     np.seterr(divide='ignore', invalid='ignore')
 
+    socket = clientconnect.create_socket(sys.argv[2], sys.argv[3])
     predictor = Predictor(model_file=sys.argv[1] + '.pb')
 
     print('Loaded model')
@@ -97,14 +98,15 @@ if __name__ == '__main__':
     prev_time = None
 
     for unpacked_data in recv_data():
-        # Need to call server comm code here
         voltage = unpacked_data[12]
         current = unpacked_data[13]
         power = voltage * current
 
         if prev_time is not None:
             energy += power * (time.time() - prev_time)
-
         prev_time = time.time()
 
-        if predictor.process(unpacked_data[:12]) is not None:
+        prediction = predictor.process(unpacked_data[:12])
+
+        if prediction is not None:
+            clientconnect.send_data(socket, prediction, voltage, current, power, energy)
