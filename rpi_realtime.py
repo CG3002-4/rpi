@@ -7,7 +7,7 @@ from sensor_data import SensorDatum, sensor_datums_to_sensor_data
 from segment import Segment, SEGMENT_SIZE, SEGMENT_OVERLAP
 from preprocess import preprocess_segment
 from feature_extraction import extract_features_over_segment
-import timeit
+import time
 
 class SegmentPredictor:
     def __init__(self, model_file):
@@ -45,20 +45,21 @@ class SegmentPredictor:
 
 
 NUM_PREDS_TO_KEEP = 5
-NUM_PREDS_NEUTRAL = 1
 NUM_MOVES = 6
-PREDICTION_THRESHOLD = 0.5
-NEUTRAL_THRESHOLD = 0.4
+PREDICTION_THRESHOLD = 0.7
+TIME_TO_DISCARD = 1
+
 
 class Predictor:
     def __init__(self, model_file):
         self.segment_predictor = SegmentPredictor(model_file)
         self.predictions = np.empty((0, NUM_MOVES))
-        self.neutralPrediction = np.empty((0, NUM_MOVES))
-        self.prevPrediction = None
-        self.prevTime = None
+        self.prevPredictionTime = time.time()
 
     def process(self, sensors_datum):
+        if time.time() - self.predictionTime < TIME_TO_DISCARD:
+            return
+
         segment_prediction = self.segment_predictor.process(sensors_datum)
 
         if segment_prediction is not None:
@@ -68,14 +69,6 @@ class Predictor:
                 self.predictions = np.vstack([self.predictions, segment_prediction])
             else:
                 self.predictions = np.vstack([self.predictions[1:], segment_prediction])
-
-            if len(self.neutralPrediction) < NUM_PREDS_NEUTRAL:
-                self.neutralPrediction = np.vstack([self.neutralPrediction, segment_prediction])
-            else:
-                self.neutralPrediction = np.vstack([self.neutralPrediction[1:], segment_prediction])
-
-            if len(self.neutralPrediction) == NUM_PREDS_NEUTRAL:
-                self.neutral_check()
 
             if len(self.predictions) == NUM_PREDS_TO_KEEP:
                 return self.make_prediction()
@@ -87,58 +80,20 @@ class Predictor:
 
         if (max(normalized_probs) > PREDICTION_THRESHOLD):
             prediction = np.argmax(normalized_probs)
-   #         duration = timeit.default_timer() - self.prevTime
+            self.prevPredictionTime = time.time()
 
-            if (self.prevPrediction == 0) and prediction != 0:
-                self.prevPrediction = prediction    
-                self.predictions = np.empty((0, NUM_MOVES))
-                print()
-                print('Predicted Move: ' + str(np.argmax(normalized_probs)))
-                print()
-                #self.prevTime = timeit.default_timer()
+            return prediction
 
-                return prediction
-
-    def neutral_check(self):
-        probabilities = np.sum(self.neutralPrediction, axis=0)
-        normalized_probs = np.mean(probabilities, axis=0)
-        #print('Neutral Probabilities: ' + str(normalized_probs))
-
-        if (self.prevPrediction != 0 and np.argmax(probabilities) == 0):
-            print()
-            print('Neutralized!')
-            print()
-            self.prevPrediction = 0
-            #self.predictions = np.empty((0, NUM_MOVES))
-            self.prevTime = timeit.default_timer()
 
 if __name__ == '__main__':
-    import cProfile
-    import pstats
-    import io
-
-    pr = cProfile.Profile()
-    pr.enable()
-
     np.set_printoptions(suppress=True)
-    np.seterr(divide='ignore', invalid='ignore') 
+    np.seterr(divide='ignore', invalid='ignore')
 
     predictor = Predictor(model_file=sys.argv[1] + '.pb')
 
     print('Loaded model')
 
-    try:
-        for unpacked_data in recv_data():
-            # Need to call server comm code here
-            if (predictor.process(unpacked_data[:12]) is not None):
-                print(unpacked_data)
-    except KeyboardInterrupt:
-        pr.disable()
-        s = io.StringIO()
-        p = pstats.Stats(pr, stream=s)
-        p.sort_stats('time')
-        p.print_stats(10)
-        print(s.getvalue())
-
-
-
+    for unpacked_data in recv_data():
+        # Need to call server comm code here
+        if predictor.process(unpacked_data[:12]) is not None:
+            print(unpacked_data[12:])
