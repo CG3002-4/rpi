@@ -27,12 +27,16 @@ def recv_data():
     print('Looking for data')
     while True:
         packet = ser.readline()
-        print(packet)
+
+        try:
+            packet = packet.decode('utf8')
+        except:
+            print("Failed to decode packet:")
+            print(packet)
+            print()
 
         data = np.array(packet.split(',')).astype(int)
-        print(data)
         data_as_bytes = b''.join([struct.pack('>h', datum) for datum in data[:-1]])
-        print(data_as_bytes)
 
         checksum = 0
         for byte in data_as_bytes:
