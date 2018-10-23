@@ -44,10 +44,10 @@ class SegmentPredictor:
         return self.model.predict_proba(features.reshape(1, -1))[0]
 
 
-NUM_PREDS_TO_KEEP = 5
+NUM_PREDS_TO_KEEP = 3
 NUM_MOVES = 6
 PREDICTION_THRESHOLD = 0.7
-TIME_TO_DISCARD = 1
+TIME_TO_DISCARD = 1.5
 
 
 class Predictor:
@@ -57,7 +57,7 @@ class Predictor:
         self.prevPredictionTime = time.time()
 
     def process(self, sensors_datum):
-        if time.time() - self.predictionTime < TIME_TO_DISCARD:
+        if time.time() - self.prevPredictionTime < TIME_TO_DISCARD:
             return
 
         segment_prediction = self.segment_predictor.process(sensors_datum)
@@ -81,6 +81,8 @@ class Predictor:
         if max(normalized_probs) > PREDICTION_THRESHOLD:
             prediction = np.argmax(normalized_probs)
             self.prevPredictionTime = time.time()
+            self.predictions = np.empty((0, NUM_MOVES))
+            print(prediction)
 
             return prediction
 
@@ -89,7 +91,7 @@ if __name__ == '__main__':
     np.set_printoptions(suppress=True)
     np.seterr(divide='ignore', invalid='ignore')
 
-    socket = clientconnect.create_socket(sys.argv[2], sys.argv[3])
+    socket = clientconnect.create_socket(sys.argv[2], int(sys.argv[3]))
     predictor = Predictor(model_file=sys.argv[1] + '.pb')
 
     print('Loaded model')
@@ -107,6 +109,5 @@ if __name__ == '__main__':
         prev_time = time.time()
 
         prediction = predictor.process(unpacked_data[:12])
-
         if prediction is not None:
-            clientconnect.send_data(socket, prediction, voltage, current, power, energy)
+           clientconnect.send_data(socket, prediction, voltage, current, power, energy)

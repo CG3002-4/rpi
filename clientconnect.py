@@ -80,17 +80,19 @@ def switch_action(action_num):
         11: "logout"
     }
 
-    return switcher.get(action_num, "Invalid move")
+    return switcher.get(action_num, None)
 
 
 def send_data(s, action_num, voltage, current, power, cumpower):
     action = switch_action(action_num)
-    results = "#" + action + "|" + str(voltage) + "|" + str(current) + "|" + str(power) + "|" + str(cumpower)
-    encodedResults = encryptText(results, secret_key)
-    s.sendall(encodedResults)
 
-    if action == "logout":
-        return -1
+    if action is not None:
+        results = "#" + action + "|" + str(voltage) + "|" + str(current) + "|" + str(power) + "|" + str(cumpower)
+        encodedResults = encryptText(results, secret_key)
+        s.sendall(encodedResults)
+
+        if action == "logout":
+            return -1
 
 
 def logout(s):
