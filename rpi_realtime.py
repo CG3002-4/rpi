@@ -22,7 +22,6 @@ class SegmentPredictor:
 
         if len(self.data) < SEGMENT_SIZE:
             self.data = np.vstack([self.data, sensors_datum])
-
         else:
             # len(self.data) has to be equal to segment size
             self.data = np.vstack([self.data[1:], sensors_datum])
@@ -42,6 +41,9 @@ class SegmentPredictor:
         features = np.nan_to_num(features)
 
         return self.model.predict_proba(features.reshape(1, -1))[0]
+
+    def clear_data(self):
+        self.data = np.empty((0, 12))
 
 
 NUM_PREDS_TO_KEEP = 3
@@ -66,9 +68,11 @@ class Predictor:
             assert len(segment_prediction) == NUM_MOVES
 
             if len(self.predictions) < NUM_PREDS_TO_KEEP:
-                self.predictions = np.vstack([self.predictions, segment_prediction])
+                self.predictions = np.vstack(
+                    [self.predictions, segment_prediction])
             else:
-                self.predictions = np.vstack([self.predictions[1:], segment_prediction])
+                self.predictions = np.vstack(
+                    [self.predictions[1:], segment_prediction])
 
             if len(self.predictions) == NUM_PREDS_TO_KEEP:
                 return self.make_prediction()
@@ -82,6 +86,7 @@ class Predictor:
             prediction = np.argmax(normalized_probs)
             self.prevPredictionTime = time.time()
             self.predictions = np.empty((0, NUM_MOVES))
+            self.segment_predictor.clear_data()
             print(prediction)
 
             return prediction
@@ -110,4 +115,5 @@ if __name__ == '__main__':
 
         prediction = predictor.process(unpacked_data[:12])
         if prediction is not None:
-           clientconnect.send_data(socket, prediction, voltage, current, power, energy)
+            clientconnect.send_data(
+                socket, prediction, voltage, current, power, energy)
