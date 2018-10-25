@@ -41,7 +41,7 @@ def recv_data():
                 print('Checksums didn\'t match')
                 print()
 
-            yield data / 100
+            yield data[:-1] / 100
         except:
             print("Failed to decode packet:")
             print(packet)

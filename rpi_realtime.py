@@ -44,12 +44,14 @@ class SegmentPredictor:
 
     def clear_data(self):
         self.data = np.empty((0, 12))
+        self.portion_of_segment_complete = 0
 
 
 NUM_PREDS_TO_KEEP = 3
+NUM_NEUTRAL_THROW = 2
 NUM_MOVES = 6
 PREDICTION_THRESHOLD = 0.7
-TIME_TO_DISCARD = 1.5
+TIME_TO_DISCARD = 1
 
 
 class Predictor:
@@ -74,8 +76,21 @@ class Predictor:
                 self.predictions = np.vstack(
                     [self.predictions[1:], segment_prediction])
 
+            if len(self.predictions) == NUM_NEUTRAL_THROW:
+                self.check_neutral()
+
             if len(self.predictions) == NUM_PREDS_TO_KEEP:
                 return self.make_prediction()
+
+    def check_neutral(self):
+        probabilities = np.prod(self.predictions, axis=0)
+        normalized_probs = probabilities / np.sum(probabilities)
+        prediction = np.argmax(normalized_probs)
+        
+        if max(normalized_probs) > PREDICTION_THRESHOLD and prediction == 0:
+            self.predictions = np.empty((0, NUM_MOVES))
+            self.segment_predictor.clear_data()
+            print('Cleared neutral!')
 
     def make_prediction(self):
         probabilities = np.prod(self.predictions, axis=0)
@@ -96,7 +111,7 @@ if __name__ == '__main__':
     np.set_printoptions(suppress=True)
     np.seterr(divide='ignore', invalid='ignore')
 
-    socket = clientconnect.create_socket(sys.argv[2], int(sys.argv[3]))
+    # socket = clientconnect.create_socket(sys.argv[2], int(sys.argv[3]))
     predictor = Predictor(model_file=sys.argv[1] + '.pb')
 
     print('Loaded model')
@@ -109,11 +124,13 @@ if __name__ == '__main__':
         current = unpacked_data[13]
         power = voltage * current
 
+#        print(unpacked_data)
         if prev_time is not None:
             energy += power * (time.time() - prev_time)
         prev_time = time.time()
 
         prediction = predictor.process(unpacked_data[:12])
         if prediction is not None:
-            clientconnect.send_data(
-                socket, prediction, voltage, current, power, energy)
+            pass
+            # clientconnect.send_data(
+            #    socket, prediction, voltage, current, power, energy)
