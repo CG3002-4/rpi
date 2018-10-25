@@ -31,6 +31,9 @@ def train_internal(X, y, classifier, random_state, bootstrap):
     return clf
 
 
+FEATURE_NAMES = d = [i + j + k + l for i in ['Mean', 'Var', 'Min', 'Max', 'Corr'] for j in ['Sensor1', 'Sensor2'] for k in ['Acc', 'Gyro'] for l in ['x', 'y', 'z']]
+
+
 def cross_validate(X, y):
     """Uses 10-fold validation to train and test a model."""
 
@@ -78,11 +81,11 @@ def cross_validate(X, y):
 
         # View a list of the features and their importance scores
         feature_impt_list = np.mean(feature_impt_list, axis=0)
-        feature_importance = list(zip(range(X.shape[1]), feature_impt_list))
+        feature_importance = list(zip(FEATURE_NAMES, feature_impt_list))
         feature_importance.sort(key=lambda x: x[1])
         print("Feature Importance:")
         for feature, importance in feature_importance:
-            print(str(feature) + ": " + str(importance))
+            print(feature + ": " + str(importance))
 
         import matplotlib.pyplot as plt
 
