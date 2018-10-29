@@ -11,43 +11,50 @@ import serial
 import struct
 
 PORT = 8888
-DATA_SIZE = 32
-secret_key = '1234567887654321'
+NUM_DATUM = 14
+HANDSHAKING = False
+SECRET_KEY = '1234567887654321'
 
 
 BS = 16
 pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
 
 
-def handshake():
+def recv_data():
     ser = serial.Serial("/dev/ttyAMA0", 115200)
     ser.flushInput()
 
-    time.sleep(5)
-    ser.write("4".encode('utf8'))
-    ack = ser.read(1)
+    if HANDSHAKING:
+        time.sleep(5)
+        ser.write("4".encode('utf8'))
+        ack = ser.read(1)
 
-    if (ack[0] == 6):
-        ser.write("3".encode('utf8'))
-    else:
-        assert False, "Handshaking failed"
-
-    return ser
-
-
-def read_and_analyse_data(ser):
-    while True:
-        packet = ser.read(DATA_SIZE + 1)
-
-        checksum = 0
-        for byte in packet[:DATA_SIZE]:
-            checksum ^= byte
-
-        if checksum == packet[DATA_SIZE]:
-            contents = np.array([struct.unpack('>h', packet[i: i + 2])[0] for i in range(0, 32, 2)])
-            yield contents / 100
+        if (ack[0] == 6):
+            ser.write("3".encode('utf8'))
+            print("Handshaking success")
         else:
-            print('Checksums didn\'t match')
+            assert False, "Handshaking failed"
+
+    print('Looking for data')
+    while True:
+        packet = ser.readline()
+
+        try:
+            packet = packet.decode('utf8')
+            data = np.array(packet.strip('\r\n').split(',')).astype(int)
+            data_as_bytes = b''.join([struct.pack('>h', datum) for datum in data[:-1]])
+
+            checksum = 0
+            for byte in data_as_bytes:
+                checksum ^= byte
+
+            if checksum != data[NUM_DATUM]:
+                print('Checksums didn\'t match')
+                print()
+
+            yield data[:-1] / 100
+        except:
+            print("Failed to decode packet:")
             print(packet)
             print()
 
@@ -88,7 +95,7 @@ def send_data(s, action_num, voltage, current, power, cumpower):
 
     if action is not None:
         results = "#" + action + "|" + str(voltage) + "|" + str(current) + "|" + str(power) + "|" + str(cumpower)
-        encodedResults = encryptText(results, secret_key)
+        encodedResults = encryptText(results, SECRET_KEY)
         s.sendall(encodedResults)
 
         if action == "logout":

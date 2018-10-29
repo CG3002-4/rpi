@@ -1,11 +1,11 @@
 import sys
 import pickle
 import numpy as np
-from recv_data import recv_data
 from segment import Segment, SEGMENT_SIZE, SEGMENT_OVERLAP
 from preprocess import preprocess_segment
 from feature_extraction import extract_features_over_segment
 import clientconnect
+from clientconnect import recv_data, send_data, create_socket
 import time
 
 
@@ -30,7 +30,7 @@ class SegmentPredictor:
 
         if self.portion_of_segment_complete == SEGMENT_SIZE:
             # Up to segment_overlap is already contained in the data
-            self.portion_of_segment_complete = SEGMENT_SIZE * SEGMENT_OVERLAP
+            self.portion_of_segment_complete = int(SEGMENT_SIZE * SEGMENT_OVERLAP)
 
             return self.make_prediction()
 
@@ -111,7 +111,7 @@ if __name__ == '__main__':
     np.set_printoptions(suppress=True)
     np.seterr(divide='ignore', invalid='ignore')
 
-    # socket = clientconnect.create_socket(sys.argv[2], int(sys.argv[3]))
+    socket = create_socket(sys.argv[2], int(sys.argv[3]))
     predictor = Predictor(model_file=sys.argv[1] + '.pb')
 
     print('Loaded model')
@@ -119,18 +119,21 @@ if __name__ == '__main__':
     energy = 0
     prev_time = None
 
-    for unpacked_data in recv_data():
-        voltage = unpacked_data[12]
-        current = unpacked_data[13]
-        power = voltage * current
+    with open('realtime_' + str(time.time()), 'w') as log_file:
+        for unpacked_data in recv_data():
+            log_file.write(str(unpacked_data) + '\n')
 
-#        print(unpacked_data)
-        if prev_time is not None:
-            energy += power * (time.time() - prev_time)
-        prev_time = time.time()
+            voltage = unpacked_data[12]
+            current = unpacked_data[13]
+            power = voltage * current
 
-        prediction = predictor.process(unpacked_data[:12])
-        if prediction is not None:
-            pass
-            # clientconnect.send_data(
-            #    socket, prediction, voltage, current, power, energy)
+            #print(unpacked_data)
+            if prev_time is not None:
+                energy += power * (time.time() - prev_time)
+            prev_time = time.time()
+
+            prediction = predictor.process(unpacked_data[:12])
+            if prediction is not None:
+                print('Prediction: ' + str(prediction))
+                send_data(socket, prediction, voltage, current, power, energy)
+
