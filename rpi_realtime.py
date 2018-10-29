@@ -119,9 +119,9 @@ if __name__ == '__main__':
     energy = 0
     prev_time = None
 
-    with open('realtime_' + str(time.time()), 'w') as log_file:
+    with open('realtime_' + str(int(time.time())) + '.log', 'w') as log_file:
         for unpacked_data in recv_data():
-            log_file.write(str(unpacked_data) + '\n')
+            log_file.write(str(list(unpacked_data)) + '\n')
 
             voltage = unpacked_data[12]
             current = unpacked_data[13]
