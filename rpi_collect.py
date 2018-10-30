@@ -6,8 +6,7 @@ Usage:
 import sys
 from data_collection import DataCollection
 import sensor_data
-from clientconnect import handshake
-from recv_data import recv_data
+from clientconnect import recv_data
 
 
 if __name__ == '__main__':
