@@ -49,7 +49,7 @@ class SegmentPredictor:
 
 NUM_PREDS_TO_KEEP = 3
 NUM_NEUTRAL_THROW = 2
-NUM_MOVES = 6
+NUM_MOVES = 2
 PREDICTION_THRESHOLD = 0.7
 TIME_TO_DISCARD = 1
 
@@ -111,7 +111,7 @@ if __name__ == '__main__':
     np.set_printoptions(suppress=True)
     np.seterr(divide='ignore', invalid='ignore')
 
-    socket = create_socket(sys.argv[2], int(sys.argv[3]))
+    # socket = create_socket(sys.argv[2], int(sys.argv[3]))
     predictor = Predictor(model_file=sys.argv[1] + '.pb')
 
     print('Loaded model')
@@ -135,5 +135,5 @@ if __name__ == '__main__':
             prediction = predictor.process(unpacked_data[:12])
             if prediction is not None:
                 print('Prediction: ' + str(prediction))
-                send_data(socket, prediction, voltage, current, power, energy)
+                # send_data(socket, prediction, voltage, current, power, energy)
 
