@@ -109,9 +109,9 @@ def extract_features_over_segment(segment):
          ]
     )
     rfft = np.abs(np.fft.rfft(sensors_data, axis=0))
-    freq_amps = np.reshape(rfft[:FFT_NUM_AMPS, :], (-1,))
-    energy = np.sum(rfft[1:] ** 2, axis=1) / (rfft.shape[0] - 1)
-    return np.hstack([means, vars, mins, maxs, corrs, freq_amps, energy])
+    # freq_amps = np.reshape(rfft[:FFT_NUM_AMPS, :], (-1,))
+    energy = np.sum(rfft[1:] ** 2, axis=0) / (rfft.shape[0] - 1)
+    return np.hstack([means, vars, mins, maxs, corrs, energy])
 
 
 def extract_features(segments):
