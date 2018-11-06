@@ -48,12 +48,12 @@ def preprocess_segment(segment):
     The noise filters are applied in left to right order.
     """
     sensors_data = np.apply_along_axis(func1d=signal.medfilt, arr=segment.sensors_data, axis=0)
-    new_data = np.empty((sensors_data.shape[0], 18))
+    # new_data = np.empty((sensors_data.shape[0], 18))
     # sensors_data = np.apply_along_axis(func1d=lambda axis: signal.sosfiltfilt(SOS, axis, padlen=0), arr=segment.sensors_data, axis=0)
-    new_data[:, :6] = np.apply_along_axis(func1d=butter_body, arr=sensors_data[:, [0, 1, 2, 6, 7, 8]], axis=0)
-    new_data[:, 6:12] = np.apply_along_axis(func1d=butter_gravity, arr=sensors_data[:, [0, 1, 2, 6, 7, 8]], axis=0)
-    new_data[:, 12:] = sensors_data[:, [3, 4, 5, 9, 10, 11]]
-    segment.sensors_data = new_data
+    # new_data[:, :6] = np.apply_along_axis(func1d=butter_body, arr=sensors_data[:, [0, 1, 2, 6, 7, 8]], axis=0)
+    # new_data[:, 6:12] = np.apply_along_axis(func1d=butter_gravity, arr=sensors_data[:, [0, 1, 2, 6, 7, 8]], axis=0)
+    # new_data[:, 12:] = sensors_data[:, [3, 4, 5, 9, 10, 11]]
+    segment.sensors_data = sensors_data
     return segment
 
 

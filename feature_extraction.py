@@ -103,9 +103,9 @@ def extract_features_over_segment(segment):
         [np.corrcoef(np.transpose(sensors_data[:, 0:3]))[[0, 0, 1], [1, 2, 2]],
          np.corrcoef(np.transpose(sensors_data[:, 3:6]))[[0, 0, 1], [1, 2, 2]],
          np.corrcoef(np.transpose(sensors_data[:, 6:9]))[[0, 0, 1], [1, 2, 2]],
-         np.corrcoef(np.transpose(sensors_data[:, 9:12]))[[0, 0, 1], [1, 2, 2]],
-         np.corrcoef(np.transpose(sensors_data[:, 12:15]))[[0, 0, 1], [1, 2, 2]],
-         np.corrcoef(np.transpose(sensors_data[:, 15:18]))[[0, 0, 1], [1, 2, 2]]
+         np.corrcoef(np.transpose(sensors_data[:, 9:12]))[[0, 0, 1], [1, 2, 2]]
+         # np.corrcoef(np.transpose(sensors_data[:, 12:15]))[[0, 0, 1], [1, 2, 2]],
+         # np.corrcoef(np.transpose(sensors_data[:, 15:18]))[[0, 0, 1], [1, 2, 2]]
          ]
     )
     return np.hstack([means, vars, mins, maxs, corrs])
