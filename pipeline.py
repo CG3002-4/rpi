@@ -34,8 +34,11 @@ def feature_extraction_pipeline(exp_names):
         data_collection.load()
         segments.extend(data_collection.segment())
 
+    print("Loaded segments")
     preprocessed_segments = preprocess.preprocess_segments(segments)
+    print("Preprocessed segments")
     features = feature_extraction.extract_features(preprocessed_segments)
+    print("Extracted features")
     labels = np.array([segment.label for segment in segments])
 
     # neutral_idxs = labels != 1

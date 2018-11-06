@@ -46,7 +46,7 @@ def preprocess_segment(segment):
     The noise filters are applied in left to right order.
     """
     sensors_data = np.apply_along_axis(func1d=signal.medfilt, arr=segment.sensors_data, axis=0)
-    sensors_data = np.apply_along_axis(func1d=lambda axis: signal.sosfiltfilt(SOS, axis, padlen=0), arr=segment.sensors_data, axis=0)
+    # sensors_data = np.apply_along_axis(func1d=lambda axis: signal.sosfiltfilt(SOS, axis, padlen=0), arr=segment.sensors_data, axis=0)
     segment.sensors_data = sensors_data
     return segment
 
