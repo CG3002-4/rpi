@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from scipy import stats
 
 
 def extract_feature_over_each_sensor(segment, feature_extractor_over_sensor, feature_names):
@@ -108,10 +109,11 @@ def extract_features_over_segment(segment):
          # np.corrcoef(np.transpose(sensors_data[:, 15:18]))[[0, 0, 1], [1, 2, 2]]
          ]
     )
-    # rfft = np.abs(np.fft.rfft(sensors_data, axis=0))
+    rfft = np.abs(np.fft.rfft(sensors_data, axis=0))[1:]
+    entropy = stats.entropy(rfft, base=2)
     # # freq_amps = np.reshape(rfft[:FFT_NUM_AMPS, :], (-1,))
     # energy = np.sum(rfft[1:] ** 2, axis=0) / (rfft.shape[0] - 1)
-    return np.hstack([means, vars, mins, maxs, corrs])
+    return np.hstack([means, vars, mins, maxs, corrs, entropy ])
 
 
 def extract_features(segments):
