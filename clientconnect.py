@@ -53,7 +53,8 @@ def recv_data():
                 print()
 
             yield data[:-1] / 100
-        except:
+        except Exception as e:
+            print(e)
             print("Failed to decode packet:")
             print(packet)
             print()
@@ -84,6 +85,11 @@ def switch_action(action_num):
         3: "chicken",
         4: "sidestep",
         5: "turnclap",
+        6: "numbersix",
+        7: "salute",
+        8: "mermaid",
+        9: "swing",
+        10: "cowboy",
         11: "logout"
     }
 

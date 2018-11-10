@@ -9,6 +9,7 @@ import argparse
 import numpy as np
 import pandas as pd
 import pickle
+import glob
 from data_collection import DataCollection
 import preprocess
 import feature_extraction
@@ -29,8 +30,8 @@ def feature_extraction_pipeline(exp_names):
     segments = []
 
     for exp_name in exp_names:
-        exp_dir = os.path.join(DATA_FOLDER, exp_name)
-        data_collection = DataCollection(exp_dir)
+        # exp_dir = os.path.join(DATA_FOLDER, exp_name)
+        data_collection = DataCollection(exp_name)
         data_collection.load()
         segments.extend(data_collection.segment())
 
@@ -73,7 +74,11 @@ def cross_validate_pipeline(X, y):
 
 
 def get_all_experiments():
-    return [x[1] for x in os.walk(DATA_FOLDER)][0]
+    return [os.path.join(DATA_FOLDER, exp_name) for exp_name in [x[1] for x in os.walk(DATA_FOLDER)][0]]
+
+
+def get_exp_names_from_glob(glob_names):
+    return [exp_name for glob_name in glob_names for exp_name in glob.glob(os.path.join(DATA_FOLDER, glob_name))]
 
 
 def exactly_one_true(*bools):
@@ -92,7 +97,7 @@ def get_features_and_labels_from_args(args):
     elif args.all_exp:
         return feature_extraction_pipeline(get_all_experiments())
     else:
-        return feature_extraction_pipeline(args.exp_names)
+        return feature_extraction_pipeline(get_exp_names_from_glob(args.exp_names))
 
 
 def create_save_features_parser(subparsers):
@@ -118,7 +123,7 @@ def create_save_features_parser(subparsers):
                 get_all_experiments())
         else:
             features, labels = feature_extraction_pipeline(
-                args.exp_names)
+                get_exp_names_from_glob(args.exp_names))
         save_features_and_labels(features, labels, args.data_file)
 
     parser.set_defaults(func=save_features_with_args)

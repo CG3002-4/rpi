@@ -9,7 +9,7 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import LinearSVC
 
 
-NUM_ESTIMATORS = 39
+NUM_ESTIMATORS = 100
 MEANING_OF_LIFE = 42
 SEEDS = [85, 37, 88, 33, 58, 70, 12, 62, 6, 35]
 # SEEDS = [67, 40, 30, 71, 95, 44, 66, 94, 79, 43, 86, 51, 31, 76,
@@ -21,11 +21,11 @@ def train_internal(X, y, classifier, random_state, bootstrap):
 
     If no value given for random_state, then will be chosen by code.
     """
-    MAX_FEATURES = (np.sqrt(X.shape[1]) + 1) / X.shape[1]
+    MAX_FEATURES = (np.sqrt(X.shape[1])) / X.shape[1]
 
     clf = classifier(random_state=random_state, max_features=MAX_FEATURES,
                      n_estimators=NUM_ESTIMATORS, max_depth=None,
-                     min_samples_split=2, bootstrap=bootstrap)
+                     min_samples_split=2, bootstrap=bootstrap, n_jobs=-1)
     clf.fit(X, y)
 
     return clf

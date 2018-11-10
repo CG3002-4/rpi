@@ -49,9 +49,23 @@ class SegmentPredictor:
 
 NUM_PREDS_TO_KEEP = 3
 NUM_NEUTRAL_THROW = 2
-NUM_MOVES = 6
+NUM_MOVES = 2
 PREDICTION_THRESHOLD = 0.7
-TIME_TO_DISCARD = 1
+TIME_TO_DISCARD = 1.5
+MOVES = {
+    0: 'neutral',
+    1: 'wipers',
+    2: 'number7',
+    3: 'chicken',
+    4: 'sidestep',
+    5: 'turnclap',
+    6: 'number6',
+    7: 'salute',
+    8: 'mermaid',
+    9: 'swing',
+    10: 'cowboy',
+    11: 'logout'
+}
 
 
 class Predictor:
@@ -102,7 +116,6 @@ class Predictor:
             self.prevPredictionTime = time.time()
             self.predictions = np.empty((0, NUM_MOVES))
             self.segment_predictor.clear_data()
-            print(prediction)
 
             return prediction
 
@@ -111,29 +124,29 @@ if __name__ == '__main__':
     np.set_printoptions(suppress=True)
     np.seterr(divide='ignore', invalid='ignore')
 
-    socket = create_socket(sys.argv[2], int(sys.argv[3]))
-    predictor = Predictor(model_file=sys.argv[1] + '.pb')
+    #socket = create_socket(sys.argv[2], int(sys.argv[3]))
+    predictor = Predictor(model_file=sys.argv[1])
 
     print('Loaded model')
 
     energy = 0
     prev_time = None
 
-    with open('realtime_' + str(int(time.time())) + '.log', 'w') as log_file:
-        for unpacked_data in recv_data():
-            log_file.write(str(list(unpacked_data)) + '\n')
+    # with open('realtime_' + str(int(time.time())) + '.log', 'w') as log_file:
+    for unpacked_data in recv_data():
+        # log_file.write(str(list(unpacked_data)) + '\n')
 
-            voltage = unpacked_data[12]
-            current = unpacked_data[13]
-            power = voltage * current
+        voltage = unpacked_data[12]
+        current = unpacked_data[13]
+        power = voltage * current
 
-            #print(unpacked_data)
-            if prev_time is not None:
-                energy += power * (time.time() - prev_time)
-            prev_time = time.time()
+        # print(unpacked_data)
+        if prev_time is not None:
+            energy += power * (time.time() - prev_time)
+            # print(time.time() - prev_time)
+        prev_time = time.time()
 
-            prediction = predictor.process(unpacked_data[:12])
-            if prediction is not None:
-                print('Prediction: ' + str(prediction))
-                send_data(socket, prediction, voltage, current, power, energy)
-
+        prediction = predictor.process(unpacked_data[:12])
+        if prediction is not None:
+            print('Prediction: ' + MOVES[prediction])
+            # send_data(socket, prediction, voltage, current, power, energy)
