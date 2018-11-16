@@ -14,6 +14,19 @@ PORT = 8888
 NUM_DATUM = 14
 HANDSHAKING = False
 SECRET_KEY = '1234567887654321'
+MOVES = {
+    1: "wipers",
+    2: "number7",
+    3: "chicken",
+    4: "sidestep",
+    5: "turnclap",
+    6: "numbersix",
+    7: "salute",
+    8: "mermaid",
+    9: "swing",
+    10: "cowboy",
+    11: "logout"
+}
 
 
 BS = 16
@@ -79,21 +92,7 @@ def create_socket(host, port):
 
 
 def switch_action(action_num):
-    switcher = {
-        1: "wipers",
-        2: "number7",
-        3: "chicken",
-        4: "sidestep",
-        5: "turnclap",
-        6: "numbersix",
-        7: "salute",
-        8: "mermaid",
-        9: "swing",
-        10: "cowboy",
-        11: "logout"
-    }
-
-    return switcher.get(action_num, None)
+    return MOVES[action_num]
 
 
 def send_data(s, action_num, voltage, current, power, cumpower):

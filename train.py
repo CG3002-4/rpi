@@ -10,10 +10,8 @@ from sklearn.svm import LinearSVC
 
 
 NUM_ESTIMATORS = 100
-MEANING_OF_LIFE = 42
+TRAIN_SEED = 42
 SEEDS = [85, 37, 88, 33, 58, 70, 12, 62, 6, 35]
-# SEEDS = [67, 40, 30, 71, 95, 44, 66, 94, 79, 43, 86, 51, 31, 76,
-#          88, 48, 25, 7, 59, 14, 82, 29, 13, 68, 26, 1, 52, 0, 80, 87]
 
 
 def train_internal(X, y, classifier, random_state, bootstrap):
@@ -58,20 +56,13 @@ def cross_validate(X, y):
                 train_X, test_X = X[train_index], X[test_index]
                 train_y, test_y = y[train_index], y[test_index]
 
-                # std_scale = StandardScaler().fit(train_X)
-                # train_X = std_scale.transform(train_X)
-                # test_X = std_scale.transform(test_X)
-
-                # clf = OneVsRestClassifier(LinearSVC(random_state=seed))
-                # clf.fit(train_X, train_y)
-
                 clf = train_internal(
                     train_X, train_y, classifier, random_state=seed, bootstrap=bootstrap)
                 predictions = clf.predict(test_X)
                 accuracy.append(accuracy_score(test_y, predictions))
                 confusion_matrices.append(
                     confusion_matrix(test_y, predictions))
-                feature_impt_list.append(clf.feature_importances_)
+                # feature_impt_list.append(clf.feature_importances_)
 
         print("Accuracy: " + str(np.mean(accuracy)))
 
@@ -114,9 +105,9 @@ def cross_validate(X, y):
 
 def train(X, y):
     # Shuffle the X and y values in unison
-    X, y = shuffle(X, y, random_state=MEANING_OF_LIFE)
+    X, y = shuffle(X, y, random_state=TRAIN_SEED)
 
-    return train_internal(X, y, ExtraTreesClassifier, random_state=MEANING_OF_LIFE, bootstrap=False)
+    return train_internal(X, y, ExtraTreesClassifier, random_state=TRAIN_SEED, bootstrap=False)
 
 
 if __name__ == '__main__':

@@ -17,12 +17,6 @@ import train
 
 
 DATA_FOLDER = 'data'
-# NOISE_FILTERS = [preprocess.medfilt, preprocess.butter_noise]
-# FEATURE_EXTRACTORS = [feature_extraction.mean,
-#                       feature_extraction.var,
-#                       feature_extraction.correlate,
-#                       feature_extraction.max,
-#                       feature_extraction.min]
 
 
 def feature_extraction_pipeline(exp_names):
@@ -30,7 +24,6 @@ def feature_extraction_pipeline(exp_names):
     segments = []
 
     for exp_name in exp_names:
-        # exp_dir = os.path.join(DATA_FOLDER, exp_name)
         data_collection = DataCollection(exp_name)
         data_collection.load()
         segments.extend(data_collection.segment())
@@ -42,13 +35,11 @@ def feature_extraction_pipeline(exp_names):
     print("Extracted features")
     labels = np.array([segment.label for segment in segments])
 
-    # neutral_idxs = labels != 1
-    # return features[neutral_idxs], labels[neutral_idxs]
     return features, labels
 
 
 def save_features_and_labels(features, labels, filename):
-    # Create new DataFrame with both features and labels
+    # Create new numpy array with both features and labels
     data = np.empty((features.shape[0], features.shape[1] + 1))
     data[:, :-1] = features
     data[:, -1] = labels
