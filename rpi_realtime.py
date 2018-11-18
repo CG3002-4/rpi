@@ -113,7 +113,7 @@ if __name__ == '__main__':
     np.set_printoptions(suppress=True)
     np.seterr(divide='ignore', invalid='ignore')
 
-    use_server = sys.argv[4] == 'server'
+    use_server = len(sys.argv) >= 5 and sys.argv[4] == 'server'
 
     if use_server:
         socket = create_socket(sys.argv[2], int(sys.argv[3]))
