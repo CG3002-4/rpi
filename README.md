@@ -10,7 +10,7 @@ A wearable system that predicts the dance move you're performing.
 2. Connect the RPi to a monitor, mouse and keyboard.
 3. Set up WiFi for the RPi.
 4. (Optional) Create a Telegram chat and set the `chat_id` in `telegram_bot.py` to that of your chat. This will enable the RPi to text you its IP address on startup so that the peripherals are not needed again.
-5. Change working directory in the RPi to `~/Documents/CG3002/CG3002-4/rpi` and update the git repository to the latest version. Alternatively, clone the repository at [CG3002-4/rpi](#https://github.com/CG3002-4/rpi)
+5. Change working directory in the RPi to `~/Documents/CG3002/CG3002-4/rpi` and update the git repository to the latest version. Alternatively, clone the repository at [github/CG3002-4/rpi](#https://github.com/CG3002-4/rpi)
 5. Run `python3 test.py` to test if the RPi is receiving data from the Arduino. (You may have to toggle the `HANDSHAKING` flag in `clientconnect.py`)
 6. Run `pip3 install -r requirements.txt` on your computer to install the required packages.
 
