@@ -99,7 +99,7 @@ def create_save_features_parser(subparsers):
     parser.add_argument(
         '--data-file', help='Filename of csv to which features will be written')
     parser.add_argument('--exp-names', nargs='+',
-                        default=[], help='Names of experiment(s) to extract from')
+                        default=[], help='Names of experiment(s) as globs to extract from')
     parser.add_argument('--all-exp', action='store_true', default=False,
                         help='Extract from all experiments')
 
@@ -124,7 +124,7 @@ def add_loading_arguments(parser):
     parser.add_argument(
         '--load-file', help='Name of csv file containing features to be loaded')
     parser.add_argument('--exp-names', nargs='+',
-                        default=[], help='Names of experiment(s) to train on')
+                        default=[], help='Names of experiment(s) as globs to train on')
     parser.add_argument('--all-exp', action='store_true',
                         help='Train on all experiments')
 
