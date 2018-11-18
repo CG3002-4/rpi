@@ -6,6 +6,7 @@ from preprocess import preprocess_segment
 from feature_extraction import extract_features_over_segment
 import clientconnect
 from clientconnect import recv_data, send_data, create_socket, MOVES
+# from dummy_data import recv_data
 import time
 
 
@@ -51,9 +52,9 @@ class SegmentPredictor:
 
 NUM_PREDS_TO_KEEP = 3
 NUM_NEUTRAL_THROW = 2
-NUM_MOVES = 2
-PREDICTION_THRESHOLD = 0.7
-TIME_TO_DISCARD = 1.5
+NUM_MOVES = 1
+PREDICTION_THRESHOLD = 0.8
+TIME_TO_DISCARD = 1
 
 
 class Predictor:
@@ -112,7 +113,10 @@ if __name__ == '__main__':
     np.set_printoptions(suppress=True)
     np.seterr(divide='ignore', invalid='ignore')
 
-    socket = create_socket(sys.argv[2], int(sys.argv[3]))
+    use_server = sys.argv[4] == 'server'
+
+    if use_server:
+        socket = create_socket(sys.argv[2], int(sys.argv[3]))
     predictor = Predictor(model_file=sys.argv[1])
 
     print('Loaded model')
@@ -132,4 +136,5 @@ if __name__ == '__main__':
         prediction = predictor.process(unpacked_data[:12])
         if prediction is not None:
             print('Prediction: ' + MOVES[prediction])
-            send_data(socket, prediction, voltage, current, power, energy)
+            if use_server:
+                send_data(socket, prediction, voltage, current, power, energy)
