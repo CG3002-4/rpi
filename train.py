@@ -62,7 +62,7 @@ def cross_validate(X, y):
                 accuracy.append(accuracy_score(test_y, predictions))
                 confusion_matrices.append(
                     confusion_matrix(test_y, predictions))
-                # feature_impt_list.append(clf.feature_importances_)
+                feature_impt_list.append(clf.feature_importances_)
 
         print("Accuracy: " + str(np.mean(accuracy)))
 
